@@ -37,6 +37,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
+-- ОВЕРЛЕЙ
 local OverlayFrame = Instance.new("Frame")
 OverlayFrame.BackgroundColor3 = Theme.Main
 OverlayFrame.BackgroundTransparency = 0.5
@@ -267,12 +268,21 @@ end
 local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
 
-local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false }
+local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
 local flySpeed = 50
 local fovSize = 300
 local espObjects = {}
 local selectedTarget = nil
 local connections = {}
+
+-- ФИОЛЕТОВЫЙ ФИЛЬТР
+local ColorCorrection = Instance.new("ColorCorrectionEffect")
+ColorCorrection.Name = "MM2_PurpleFilter"
+ColorCorrection.TintColor = Color3.fromRGB(200, 50, 255)
+ColorCorrection.Contrast = 0.2
+ColorCorrection.Saturation = -0.2
+ColorCorrection.Enabled = false
+ColorCorrection.Parent = Lighting
 
 local function startNoclip()
     if connections.noclip then connections.noclip:Disconnect() end
@@ -443,60 +453,56 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     else for p, _ in pairs(espObjects) do removeESP(p) end end 
 end)
 
--- ==================== ASPECT RATIO SLIDER ====================
-local AspectBg = Instance.new("Frame")
-AspectBg.BackgroundColor3 = Theme.BtnOff
-AspectBg.Size = UDim2.new(1, 0, 0, 30)
-AspectBg.LayoutOrder = 5
-AspectBg.Parent = MainTab
-Instance.new("UICorner", AspectBg).CornerRadius = UDim.new(0, 6)
+-- ==================== СЛАЙДЕР FOV (В MAIN) ====================
+local FovBgMain = Instance.new("Frame")
+FovBgMain.BackgroundColor3 = Theme.BtnOff
+FovBgMain.Size = UDim2.new(1, 0, 0, 30)
+FovBgMain.LayoutOrder = 5
+FovBgMain.Parent = MainTab
+Instance.new("UICorner", FovBgMain).CornerRadius = UDim.new(0, 6)
 
-local AspectSlider = Instance.new("TextButton")
-AspectSlider.BackgroundColor3 = Theme.Accent
-AspectSlider.Size = UDim2.new(0.5, 0, 1, 0)
-AspectSlider.Text = "Aspect: 1.0"
-AspectSlider.Font = Enum.Font.GothamBold
-AspectSlider.TextColor3 = Color3.new(1,1,1)
-AspectSlider.TextSize = 11
-AspectSlider.Parent = AspectBg
-Instance.new("UICorner", AspectSlider).CornerRadius = UDim.new(0, 6)
+local FovSliderMain = Instance.new("TextButton")
+FovSliderMain.BackgroundColor3 = Theme.Accent
+FovSliderMain.Size = UDim2.new(0.6, 0, 1, 0)
+FovSliderMain.Text = "FOV: 300"
+FovSliderMain.Font = Enum.Font.GothamBold
+FovSliderMain.TextColor3 = Color3.new(1,1,1)
+FovSliderMain.TextSize = 11
+FovSliderMain.Parent = FovBgMain
+Instance.new("UICorner", FovSliderMain).CornerRadius = UDim.new(0, 6)
 
-local AspectResetBtn = Instance.new("TextButton")
-AspectResetBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
-AspectResetBtn.Size = UDim2.new(0.15, 0, 1, 0)
-AspectResetBtn.Position = UDim2.new(0.85, 0, 0, 0)
-AspectResetBtn.Text = "R"
-AspectResetBtn.Font = Enum.Font.GothamBold
-AspectResetBtn.TextColor3 = Color3.new(1,1,1)
-AspectResetBtn.TextSize = 11
-AspectResetBtn.Parent = AspectBg
-Instance.new("UICorner", AspectResetBtn).CornerRadius = UDim.new(0, 6)
-
-local isDraggingAspect = false
-local currentAspect = 1.0
-
-AspectSlider.MouseButton1Down:Connect(function() isDraggingAspect = true end)
-UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then isDraggingAspect = false end end)
+local draggingFovMain = false
+FovSliderMain.MouseButton1Down:Connect(function() draggingFovMain = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFovMain = false end end)
 UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and isDraggingAspect then
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingFovMain then
         local mouseX = UserInputService:GetMouseLocation().X
-        local framePos = AspectBg.AbsolutePosition.X
-        local frameSize = AspectBg.AbsoluteSize.X - (AspectBg.AbsoluteSize.X * 0.15)
+        local framePos = FovBgMain.AbsolutePosition.X; local frameSize = FovBgMain.AbsoluteSize.X
         local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.1, 1)
-        
-        AspectSlider.Size = UDim2.new(relativeX, 0, 1, 0)
-        currentAspect = relativeX * 2
-        AspectSlider.Text = "Aspect: " .. string.format("%.2f", currentAspect)
-        Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0)
-        Camera.FieldOfView = 70 / currentAspect
+        FovSliderMain.Size = UDim2.new(relativeX, 0, 1, 0)
+        fovSize = math.floor(relativeX * 500) + 50
+        FovSliderMain.Text = "FOV: " .. fovSize
+        FovCircle.Size = UDim2.new(0, fovSize, 0, fovSize)
+        FovCircle.Position = UDim2.new(0.5, -fovSize/2, 0.5, -fovSize/2)
     end
 end)
 
-AspectResetBtn.MouseButton1Click:Connect(function()
-    currentAspect = 1.0
-    AspectSlider.Size = UDim2.new(0.5, 0, 1, 0)
-    AspectSlider.Text = "Aspect: 1.0"
-    Camera.FieldOfView = 70
+-- ==================== КНОПКА ФИЛЬТРА (В MAIN) ====================
+local FilterBtn = Instance.new("TextButton")
+FilterBtn.BackgroundColor3 = Theme.BtnOff
+FilterBtn.Size = UDim2.new(1, 0, 0, 30)
+FilterBtn.Font = Enum.Font.GothamBold
+FilterBtn.Text = "PURPLE FILTER: OFF"
+FilterBtn.TextColor3 = Theme.Text
+FilterBtn.TextSize = 11
+FilterBtn.LayoutOrder = 6
+FilterBtn.Parent = MainTab
+Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 6)
+FilterBtn.MouseButton1Click:Connect(function()
+    states.purple_filter = not states.purple_filter
+    FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    ColorCorrection.Enabled = states.purple_filter
 end)
 
 local GrabGunBtn = Instance.new("TextButton")
@@ -506,7 +512,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
-GrabGunBtn.LayoutOrder = 6
+GrabGunBtn.LayoutOrder = 7
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -517,11 +523,13 @@ StopBtn.Size = UDim2.new(1, 0, 0, 34)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 7
+StopBtn.LayoutOrder = 8
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
+    ColorCorrection.Enabled = false; states.purple_filter = false;
+    FilterBtn.Text = "PURPLE FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
@@ -620,26 +628,6 @@ CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 4, function()
                 end
             end
         end))
-    end
-end)
-
-local FovSliderBgAim = Instance.new("Frame"); FovSliderBgAim.BackgroundColor3 = Theme.BtnOff; FovSliderBgAim.Size = UDim2.new(1, 0, 0, 30); FovSliderBgAim.LayoutOrder = 5; FovSliderBgAim.Parent = TargetTab
-Instance.new("UICorner", FovSliderBgAim).CornerRadius = UDim.new(0, 6)
-local FovSliderAim = Instance.new("TextButton"); FovSliderAim.BackgroundColor3 = Theme.Accent; FovSliderAim.Size = UDim2.new(0.6, 0, 1, 0); FovSliderAim.Text = "Aimbot FOV: 300"; FovSliderAim.Font = Enum.Font.GothamBold; FovSliderAim.TextColor3 = Color3.new(1,1,1); FovSliderAim.TextSize = 10; FovSliderAim.Parent = FovSliderBgAim
-Instance.new("UICorner", FovSliderAim).CornerRadius = UDim.new(0, 6)
-local draggingFovAim = false
-FovSliderAim.MouseButton1Down:Connect(function() draggingFovAim = true end)
-UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFovAim = false end end)
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingFovAim then
-        local mouseX = UserInputService:GetMouseLocation().X
-        local framePos = FovSliderBgAim.AbsolutePosition.X; local frameSize = FovSliderBgAim.AbsoluteSize.X
-        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.1, 1)
-        FovSliderAim.Size = UDim2.new(relativeX, 0, 1, 0)
-        fovSize = math.floor(relativeX * 500) + 50
-        FovSliderAim.Text = "Aimbot FOV: " .. fovSize
-        FovCircle.Size = UDim2.new(0, fovSize, 0, fovSize)
-        FovCircle.Position = UDim2.new(0.5, -fovSize/2, 0.5, -fovSize/2)
     end
 end)
 
