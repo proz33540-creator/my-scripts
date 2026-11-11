@@ -9,7 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 136096996638435 -- Твой фон с кошкой
+local UI_BACKGROUND_ID = 107174125347585 -- Твой ID картинки с кошкой
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -92,10 +92,10 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО
+-- ОКНО (С ФОНОМ)
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 1 -- Прозрачный фон для картинки
+MainFrame.BackgroundTransparency = 1 
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -108,7 +108,7 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.3
 
--- ТВОЯ КАРТИНКА С КОШКОЙ
+-- КАРТИНКА-ФОН (КОШКА)
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
@@ -300,7 +300,7 @@ local TargetTab = CreateTab("Target", 2)
 local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
--- ВСЁ ВЫКЛЮЧЕНО (false)
+-- ВСЁ ВЫКЛЮЧЕНО
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
