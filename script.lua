@@ -9,6 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
+local UI_BACKGROUND_ID = 136096996638435 -- Твой фон с кошкой
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -39,7 +40,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
--- ОВЕРЛЕЙ
+-- ОВЕРЛЕЙ (FPS/PING)
 local OverlayFrame = Instance.new("Frame")
 OverlayFrame.BackgroundColor3 = Theme.Main
 OverlayFrame.BackgroundTransparency = 0.5
@@ -91,13 +92,15 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОКНО
+-- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
+MainFrame.BackgroundTransparency = 1 -- Прозрачный фон для картинки
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local UIStroke = Instance.new("UIStroke", MainFrame)
@@ -105,9 +108,22 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.3
 
+-- ТВОЯ КАРТИНКА С КОШКОЙ
+local BackgroundImage = Instance.new("ImageLabel")
+BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
+BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
+BackgroundImage.ScaleType = Enum.ScaleType.Crop
+BackgroundImage.BackgroundTransparency = 1
+BackgroundImage.ImageTransparency = 0.1
+BackgroundImage.ZIndex = 1
+BackgroundImage.Parent = MainFrame
+
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
+TopBar.BackgroundTransparency = 0.2
 TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.ZIndex = 2
 TopBar.Parent = MainFrame
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 10)
 local TopGradient = Instance.new("UIGradient")
@@ -124,6 +140,7 @@ Title.Text = "PURPLE HUB"
 Title.TextColor3 = Theme.Text
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 3
 Title.Parent = TopBar
 
 local AuthorText = Instance.new("TextLabel")
@@ -135,6 +152,7 @@ AuthorText.Text = "Author: Secret"
 AuthorText.TextColor3 = Color3.fromRGB(200, 150, 255)
 AuthorText.TextSize = 12
 AuthorText.TextXAlignment = Enum.TextXAlignment.Left
+AuthorText.ZIndex = 3
 AuthorText.Parent = TopBar
 
 local MinimizeBtn = Instance.new("TextButton")
@@ -145,6 +163,7 @@ MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "-"
 MinimizeBtn.TextColor3 = Theme.Text
 MinimizeBtn.TextSize = 18
+MinimizeBtn.ZIndex = 3
 MinimizeBtn.Parent = TopBar
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 4)
 
@@ -156,6 +175,7 @@ CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Theme.Text
 CloseBtn.TextSize = 18
+CloseBtn.ZIndex = 3
 CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 4)
 
@@ -207,14 +227,17 @@ end)
 -- ВКЛАДКИ
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
+SideBar.BackgroundTransparency = 0.3
 SideBar.Position = UDim2.new(0, 0, 0, 40)
 SideBar.Size = UDim2.new(0, 110, 1, -40)
+SideBar.ZIndex = 2
 SideBar.Parent = MainFrame
 Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
 
 local TabList = Instance.new("Frame")
 TabList.BackgroundTransparency = 1
 TabList.Size = UDim2.new(1, 0, 1, 0)
+TabList.ZIndex = 3
 TabList.Parent = SideBar
 Instance.new("UIListLayout", TabList).Padding = UDim.new(0, 6)
 Instance.new("UIListLayout", TabList).HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -224,6 +247,7 @@ local ContentFrame = Instance.new("Frame")
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Position = UDim2.new(0, 110, 0, 40)
 ContentFrame.Size = UDim2.new(1, -110, 1, -40)
+ContentFrame.ZIndex = 3
 ContentFrame.Parent = MainFrame
 
 local Tabs = {}
@@ -236,6 +260,7 @@ local function CreateTab(name, order)
     btn.TextColor3 = Theme.Text
     btn.TextSize = 12
     btn.LayoutOrder = order
+    btn.ZIndex = 3
     btn.Parent = TabList
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     
@@ -247,6 +272,7 @@ local function CreateTab(name, order)
     frame.ScrollBarThickness = 3
     frame.ScrollBarImageColor3 = Theme.Accent
     frame.Visible = false
+    frame.ZIndex = 4
     frame.Parent = ContentFrame
     Instance.new("UIListLayout", frame).Padding = UDim.new(0, 5)
     
@@ -513,7 +539,6 @@ local function updateGunESP()
 end
 
 local function CreateButton(parent, name, displayName, order, onClick)
-    -- По умолчанию ставим OFF, так как в states стоит false
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
     btn.Size = UDim2.new(1, 0, 0, 30)
@@ -522,6 +547,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
     btn.TextColor3 = Theme.Text
     btn.TextSize = 11
     btn.LayoutOrder = order
+    btn.ZIndex = 4
     btn.Parent = parent
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     
@@ -561,6 +587,7 @@ local FovBgMain = Instance.new("Frame")
 FovBgMain.BackgroundColor3 = Theme.BtnOff
 FovBgMain.Size = UDim2.new(1, 0, 0, 30)
 FovBgMain.LayoutOrder = 5
+FovBgMain.ZIndex = 4
 FovBgMain.Parent = MainTab
 Instance.new("UICorner", FovBgMain).CornerRadius = UDim.new(0, 6)
 
@@ -571,6 +598,7 @@ FovSliderMain.Text = "Camera FOV: 70"
 FovSliderMain.Font = Enum.Font.GothamBold
 FovSliderMain.TextColor3 = Color3.new(1,1,1)
 FovSliderMain.TextSize = 11
+FovSliderMain.ZIndex = 4
 FovSliderMain.Parent = FovBgMain
 Instance.new("UICorner", FovSliderMain).CornerRadius = UDim.new(0, 6)
 
@@ -597,6 +625,7 @@ GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
 GrabGunBtn.LayoutOrder = 6
+GrabGunBtn.ZIndex = 4
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -608,6 +637,7 @@ StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
 StopBtn.LayoutOrder = 7
+StopBtn.ZIndex = 4
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
@@ -628,6 +658,7 @@ SelectTargetBtn.Font = Enum.Font.GothamBold;
 SelectTargetBtn.Text = "Target: None"; 
 SelectTargetBtn.TextColor3 = Theme.Text; 
 SelectTargetBtn.LayoutOrder = 1; 
+SelectTargetBtn.ZIndex = 4
 SelectTargetBtn.Parent = TargetTab
 Instance.new("UICorner", SelectTargetBtn).CornerRadius = UDim.new(0, 6)
 
@@ -639,6 +670,7 @@ PlayerListScroll.ScrollBarThickness = 3
 PlayerListScroll.ScrollBarImageColor3 = Theme.Accent
 PlayerListScroll.LayoutOrder = 2
 PlayerListScroll.Visible = false
+PlayerListScroll.ZIndex = 4
 PlayerListScroll.Parent = TargetTab
 Instance.new("UICorner", PlayerListScroll).CornerRadius = UDim.new(0, 6)
 Instance.new("UIListLayout", PlayerListScroll).Padding = UDim.new(0, 3)
@@ -658,6 +690,7 @@ local function refreshPlayerList()
             pBtn.Text = p.Name
             pBtn.TextColor3 = Theme.Text
             pBtn.TextSize = 11
+            pBtn.ZIndex = 5
             pBtn.Parent = PlayerListScroll
             Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 4)
             pBtn.MouseButton1Click:Connect(function()
@@ -679,7 +712,7 @@ SelectTargetBtn.MouseButton1Click:Connect(function()
     if PlayerListScroll.Visible then refreshPlayerList() end
 end)
 
-local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.Size = UDim2.new(1, 0, 0, 30); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.Parent = TargetTab
+local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.Size = UDim2.new(1, 0, 0, 30); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
 Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 6)
 TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
 
@@ -723,6 +756,7 @@ local AimFovBg = Instance.new("Frame");
 AimFovBg.BackgroundColor3 = Theme.BtnOff; 
 AimFovBg.Size = UDim2.new(1, 0, 0, 30); 
 AimFovBg.LayoutOrder = 5; 
+AimFovBg.ZIndex = 4
 AimFovBg.Parent = TargetTab
 Instance.new("UICorner", AimFovBg).CornerRadius = UDim.new(0, 6)
 
@@ -733,6 +767,7 @@ AimFovSlider.Text = "Aimbot FOV: 300";
 AimFovSlider.Font = Enum.Font.GothamBold; 
 AimFovSlider.TextColor3 = Color3.new(1,1,1); 
 AimFovSlider.TextSize = 10; 
+AimFovSlider.ZIndex = 4
 AimFovSlider.Parent = AimFovBg
 Instance.new("UICorner", AimFovSlider).CornerRadius = UDim.new(0, 6)
 
@@ -760,6 +795,7 @@ HitboxBtn.Text = "HITBOX EXPANDER: OFF"
 HitboxBtn.TextColor3 = Color3.new(1,1,1)
 HitboxBtn.TextSize = 12
 HitboxBtn.LayoutOrder = 6
+HitboxBtn.ZIndex = 4
 HitboxBtn.Parent = TargetTab
 Instance.new("UICorner", HitboxBtn).CornerRadius = UDim.new(0, 6)
 
@@ -805,6 +841,7 @@ FilterBtn.Text = "FILTER: OFF"
 FilterBtn.TextColor3 = Theme.Text
 FilterBtn.TextSize = 11
 FilterBtn.LayoutOrder = 1
+FilterBtn.ZIndex = 4
 FilterBtn.Parent = FilterTab
 Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 6)
 FilterBtn.MouseButton1Click:Connect(function()
@@ -822,6 +859,7 @@ SkinBtn.Text = "CUSTOM SKIN: OFF"
 SkinBtn.TextColor3 = Theme.Text
 SkinBtn.TextSize = 12
 SkinBtn.LayoutOrder = 1
+SkinBtn.ZIndex = 4
 SkinBtn.Parent = AvatarTab
 Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 6)
 SkinBtn.MouseButton1Click:Connect(function()
@@ -839,6 +877,7 @@ SkinInfo.Text = "Your custom model will appear here."
 SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
 SkinInfo.TextSize = 11
 SkinInfo.LayoutOrder = 2
+SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
 UserInputService.InputBegan:Connect(function(input, gp)
