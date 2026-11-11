@@ -8,7 +8,6 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ОЧИСТКА
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
         if conn and typeof(conn) == "RBXScriptConnection" then pcall(function() conn:Disconnect() end) end
@@ -23,7 +22,6 @@ end
 
 if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
--- ТЕМА
 local Theme = { 
     Main = Color3.fromRGB(20, 10, 25), 
     Secondary = Color3.fromRGB(35, 15, 45), 
@@ -33,14 +31,12 @@ local Theme = {
     BtnOn = Color3.fromRGB(100, 0, 150)
 }
 
--- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MM2_Purple_Hub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
--- ==================== ОВЕРЛЕЙ FPS И ПИНГА ====================
 local OverlayFrame = Instance.new("Frame")
 OverlayFrame.BackgroundColor3 = Theme.Main
 OverlayFrame.BackgroundTransparency = 0.5
@@ -60,7 +56,7 @@ StatsLabel.TextSize = 11
 StatsLabel.ZIndex = 1002
 StatsLabel.Parent = OverlayFrame
 
-local fpsCounter = 60 -- Объявили локально, чтобы не засорять _G
+local fpsCounter = 60
 
 task.spawn(function()
     while task.wait(0.5) do
@@ -80,7 +76,6 @@ task.spawn(function()
     end
 end)
 
--- КРУГ ДЛЯ АИМБОТА (FOV)
 local FovCircle = Instance.new("Frame")
 FovCircle.BackgroundTransparency = 1
 FovCircle.Size = UDim2.new(0, 300, 0, 300)
@@ -93,7 +88,6 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
@@ -107,7 +101,6 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.3
 
--- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
 TopBar.Size = UDim2.new(1, 0, 0, 40)
@@ -140,7 +133,6 @@ AuthorText.TextSize = 12
 AuthorText.TextXAlignment = Enum.TextXAlignment.Left
 AuthorText.Parent = TopBar
 
--- КНОПКА СВЕРНУТЬ
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 60)
 MinimizeBtn.Position = UDim2.new(1, -55, 0, 7.5)
@@ -152,7 +144,6 @@ MinimizeBtn.TextSize = 18
 MinimizeBtn.Parent = TopBar
 Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 4)
 
--- КНОПКА ЗАКРЫТЬ
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.BackgroundColor3 = Color3.fromRGB(100, 20, 20)
 CloseBtn.Position = UDim2.new(1, -30, 0, 7.5)
@@ -164,7 +155,6 @@ CloseBtn.TextSize = 18
 CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 4)
 
--- ==================== МАЛЕНЬКИЙ КВАДРАТИК С ТВОЕЙ ИКОНКОЙ ====================
 local MinimizedFrame = Instance.new("TextButton")
 MinimizedFrame.BackgroundColor3 = Theme.Secondary
 MinimizedFrame.Size = UDim2.new(0, 50, 0, 50)
@@ -210,7 +200,6 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- ВКЛАДКИ
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
 SideBar.Position = UDim2.new(0, 0, 0, 40)
@@ -279,7 +268,6 @@ local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
 local EffectsTab = CreateTab("Effects", 3)
 
--- ПЕРЕМЕННЫЕ
 local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
 local flySpeed = 50
 local fovSize = 300
@@ -287,8 +275,8 @@ local espObjects = {}
 local selectedTarget = nil
 local connections = {}
 local currentParticleType = "None"
+local aimbotConnection = nil
 
--- ==================== ШЕЙДЕРЫ И ПАРТИКЛЫ ====================
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "MM2_PurpleFilter"
 ColorCorrection.TintColor = Color3.fromRGB(200, 50, 255)
@@ -304,7 +292,6 @@ local function applyParticle(type)
     if type == "None" then return end
     
     currentParticlePart = Instance.new("Part")
-    -- УМЕНЬШИЛИ РАЗМЕР (было 500, теперь 50, чтобы не крашило игру)
     currentParticlePart.Size = Vector3.new(50, 10, 50)
     currentParticlePart.Anchored = true
     currentParticlePart.CanCollide = false
@@ -312,7 +299,7 @@ local function applyParticle(type)
     currentParticlePart.Parent = workspace
     
     local emitter = Instance.new("ParticleEmitter")
-    emitter.Rate = 50 -- УМЕНЬШИЛИ КОЛИЧЕСТВО (было 150)
+    emitter.Rate = 50
     emitter.Lifetime = NumberRange.new(2, 6)
     emitter.Speed = NumberRange.new(1, 20)
     emitter.SpreadAngle = Vector2.new(180, 180)
@@ -345,7 +332,6 @@ local function applyParticle(type)
     end)
 end
 
--- UI ДЛЯ ШЕЙДЕРОВ
 local FilterBtn = Instance.new("TextButton")
 FilterBtn.BackgroundColor3 = Theme.BtnOff
 FilterBtn.Size = UDim2.new(1, 0, 0, 30)
@@ -420,7 +406,6 @@ CreateParticleBtn("Money", "Money", 3)
 CreateParticleBtn("None", "None", 4)
 updateParticleButtons()
 
--- ==================== ОСТАЛЬНЫЕ ФУНКЦИИ ====================
 local function startNoclip()
     if connections.noclip then connections.noclip:Disconnect() end
     connections.noclip = SaveConnection(RunService.Stepped:Connect(function()
@@ -560,7 +545,6 @@ local function createESP(player)
     end
 end
 
--- БЕЗОПАСНЫЙ KILL ALL (Без firetouchinterest)
 local function killAllInstant()
     local char = LocalPlayer.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -644,7 +628,6 @@ StopBtn.MouseButton1Click:Connect(function()
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
--- ==================== ВЫПАДАЮЩИЙ СПИСОК ИГРОКОВ ====================
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -675,4 +658,5 @@ local function refreshPlayerList()
     local count = 0
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
-            count = count + 
+            count = count + 1
+            local p
