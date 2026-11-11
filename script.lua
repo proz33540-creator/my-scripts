@@ -266,144 +266,13 @@ end
 
 local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
-local EffectsTab = CreateTab("Effects", 3)
 
-local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
+local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false }
 local flySpeed = 50
 local fovSize = 300
 local espObjects = {}
 local selectedTarget = nil
 local connections = {}
-local currentParticleType = "None"
-
-local ColorCorrection = Instance.new("ColorCorrectionEffect")
-ColorCorrection.Name = "MM2_PurpleFilter"
-ColorCorrection.TintColor = Color3.fromRGB(200, 50, 255)
-ColorCorrection.Contrast = 0.2
-ColorCorrection.Saturation = -0.2
-ColorCorrection.Enabled = false
-ColorCorrection.Parent = Lighting
-
-local currentParticlePart = nil
-
-local function applyParticle(type)
-    if currentParticlePart then currentParticlePart:Destroy() end
-    if type == "None" then return end
-    
-    currentParticlePart = Instance.new("Part")
-    currentParticlePart.Size = Vector3.new(50, 10, 50)
-    currentParticlePart.Anchored = true
-    currentParticlePart.CanCollide = false
-    currentParticlePart.Transparency = 1
-    currentParticlePart.Parent = workspace
-    
-    local emitter = Instance.new("ParticleEmitter")
-    emitter.Rate = 50
-    emitter.Lifetime = NumberRange.new(2, 6)
-    emitter.Speed = NumberRange.new(1, 20)
-    emitter.SpreadAngle = Vector2.new(180, 180)
-    emitter.EmissionDirection = Enum.NormalId.Bottom
-    emitter.Acceleration = Vector3.new(0, -3, 0)
-    emitter.LockedToPart = false
-    
-    local purpleColor = ColorSequence.new(Color3.fromRGB(180, 50, 255))
-    
-    if type == "Heart" then
-        emitter.Texture = "rbxassetid://4747071246"
-        emitter.Color = purpleColor
-    elseif type == "Star" then
-        emitter.Texture = "rbxassetid://6031075931"
-        emitter.Color = purpleColor
-    elseif type == "Money" then
-        emitter.Texture = "rbxassetid://1439512662"
-        emitter.Color = purpleColor
-    end
-    
-    emitter.Parent = currentParticlePart
-    
-    task.spawn(function()
-        while currentParticlePart and currentParticlePart.Parent do
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                currentParticlePart.Position = LocalPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 30, 0)
-            end
-            task.wait(0.1)
-        end
-    end)
-end
-
-local FilterBtn = Instance.new("TextButton")
-FilterBtn.BackgroundColor3 = Theme.BtnOff
-FilterBtn.Size = UDim2.new(1, 0, 0, 30)
-FilterBtn.Font = Enum.Font.GothamBold
-FilterBtn.Text = "PURPLE FILTER: OFF"
-FilterBtn.TextColor3 = Theme.Text
-FilterBtn.TextSize = 11
-FilterBtn.LayoutOrder = 1
-FilterBtn.Parent = EffectsTab
-Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 6)
-FilterBtn.MouseButton1Click:Connect(function()
-    states.purple_filter = not states.purple_filter
-    FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
-    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
-    ColorCorrection.Enabled = states.purple_filter
-end)
-
-local ParticleLabel = Instance.new("TextLabel")
-ParticleLabel.BackgroundTransparency = 1
-ParticleLabel.Size = UDim2.new(1, 0, 0, 30)
-ParticleLabel.Font = Enum.Font.GothamBold
-ParticleLabel.Text = "PARTICLES"
-ParticleLabel.TextColor3 = Theme.Text
-ParticleLabel.TextSize = 12
-ParticleLabel.LayoutOrder = 2
-ParticleLabel.Parent = EffectsTab
-
-local ParticleFrame = Instance.new("Frame")
-ParticleFrame.BackgroundTransparency = 1
-ParticleFrame.Size = UDim2.new(1, 0, 0, 30)
-ParticleFrame.LayoutOrder = 3
-ParticleFrame.Parent = EffectsTab
-Instance.new("UIListLayout", ParticleFrame).FillDirection = Enum.FillDirection.Horizontal
-Instance.new("UIListLayout", ParticleFrame).Padding = UDim.new(0, 4)
-
-local particleButtons = {}
-
-local function updateParticleButtons()
-    for pType, btn in pairs(particleButtons) do
-        if currentParticleType == pType then
-            btn.BackgroundColor3 = Theme.BtnOn
-        else
-            btn.BackgroundColor3 = Theme.BtnOff
-        end
-    end
-end
-
-local function CreateParticleBtn(text, pType, order)
-    local btn = Instance.new("TextButton")
-    btn.BackgroundColor3 = Theme.BtnOff
-    btn.Size = UDim2.new(0.23, 0, 1, 0)
-    btn.Font = Enum.Font.GothamBold
-    btn.Text = text
-    btn.TextColor3 = Theme.Text
-    btn.TextSize = 10
-    btn.LayoutOrder = order
-    btn.Parent = ParticleFrame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    
-    particleButtons[pType] = btn
-    
-    btn.MouseButton1Click:Connect(function()
-        currentParticleType = pType
-        updateParticleButtons()
-        applyParticle(pType)
-    end)
-end
-
-CreateParticleBtn("Hearts", "Heart", 1)
-CreateParticleBtn("Stars", "Star", 2)
-CreateParticleBtn("Money", "Money", 3)
-CreateParticleBtn("None", "None", 4)
-updateParticleButtons()
 
 local function startNoclip()
     if connections.noclip then connections.noclip:Disconnect() end
@@ -544,31 +413,6 @@ local function createESP(player)
     end
 end
 
-local function killAllInstant()
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    local knife = char and (char:FindFirstChild("Knife") or LocalPlayer.Backpack:FindFirstChild("Knife"))
-    if not knife or not hum then return end
-    
-    if knife.Parent == LocalPlayer.Backpack then 
-        hum:EquipTool(knife) 
-        task.wait(0.2) 
-    end
-    
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            local tHrp = p.Character:FindFirstChild("HumanoidRootPart")
-            local tHum = p.Character:FindFirstChildOfClass("Humanoid")
-            if tHrp and tHum and tHum.Health > 0 then
-                pcall(function()
-                    char.HumanoidRootPart.CFrame = tHrp.CFrame * CFrame.new(0, 0, 1)
-                    knife:Activate() 
-                end)
-            end
-        end
-    end
-end
-
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
@@ -599,6 +443,62 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     else for p, _ in pairs(espObjects) do removeESP(p) end end 
 end)
 
+-- ==================== ASPECT RATIO SLIDER ====================
+local AspectBg = Instance.new("Frame")
+AspectBg.BackgroundColor3 = Theme.BtnOff
+AspectBg.Size = UDim2.new(1, 0, 0, 30)
+AspectBg.LayoutOrder = 5
+AspectBg.Parent = MainTab
+Instance.new("UICorner", AspectBg).CornerRadius = UDim.new(0, 6)
+
+local AspectSlider = Instance.new("TextButton")
+AspectSlider.BackgroundColor3 = Theme.Accent
+AspectSlider.Size = UDim2.new(0.5, 0, 1, 0)
+AspectSlider.Text = "Aspect: 1.0"
+AspectSlider.Font = Enum.Font.GothamBold
+AspectSlider.TextColor3 = Color3.new(1,1,1)
+AspectSlider.TextSize = 11
+AspectSlider.Parent = AspectBg
+Instance.new("UICorner", AspectSlider).CornerRadius = UDim.new(0, 6)
+
+local AspectResetBtn = Instance.new("TextButton")
+AspectResetBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+AspectResetBtn.Size = UDim2.new(0.15, 0, 1, 0)
+AspectResetBtn.Position = UDim2.new(0.85, 0, 0, 0)
+AspectResetBtn.Text = "R"
+AspectResetBtn.Font = Enum.Font.GothamBold
+AspectResetBtn.TextColor3 = Color3.new(1,1,1)
+AspectResetBtn.TextSize = 11
+AspectResetBtn.Parent = AspectBg
+Instance.new("UICorner", AspectResetBtn).CornerRadius = UDim.new(0, 6)
+
+local isDraggingAspect = false
+local currentAspect = 1.0
+
+AspectSlider.MouseButton1Down:Connect(function() isDraggingAspect = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then isDraggingAspect = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and isDraggingAspect then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = AspectBg.AbsolutePosition.X
+        local frameSize = AspectBg.AbsoluteSize.X - (AspectBg.AbsoluteSize.X * 0.15)
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.1, 1)
+        
+        AspectSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        currentAspect = relativeX * 2
+        AspectSlider.Text = "Aspect: " .. string.format("%.2f", currentAspect)
+        Camera.CFrame = Camera.CFrame * CFrame.new(0, 0, 0)
+        Camera.FieldOfView = 70 / currentAspect
+    end
+end)
+
+AspectResetBtn.MouseButton1Click:Connect(function()
+    currentAspect = 1.0
+    AspectSlider.Size = UDim2.new(0.5, 0, 1, 0)
+    AspectSlider.Text = "Aspect: 1.0"
+    Camera.FieldOfView = 70
+end)
+
 local GrabGunBtn = Instance.new("TextButton")
 GrabGunBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
 GrabGunBtn.Size = UDim2.new(1, 0, 0, 30)
@@ -606,7 +506,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
-GrabGunBtn.LayoutOrder = 5
+GrabGunBtn.LayoutOrder = 6
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -617,13 +517,11 @@ StopBtn.Size = UDim2.new(1, 0, 0, 34)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 6
+StopBtn.LayoutOrder = 7
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    ColorCorrection.Enabled = false;
-    if currentParticlePart then currentParticlePart:Destroy() end
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
@@ -689,11 +587,7 @@ local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3
 Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 6)
 TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
 
-local KillAllBtn = Instance.new("TextButton"); KillAllBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); KillAllBtn.Size = UDim2.new(1, 0, 0, 34); KillAllBtn.Font = Enum.Font.GothamBold; KillAllBtn.Text = "KILL ALL (INSTANT)"; KillAllBtn.TextColor3 = Color3.new(1,1,1); KillAllBtn.LayoutOrder = 4; KillAllBtn.Parent = TargetTab
-Instance.new("UICorner", KillAllBtn).CornerRadius = UDim.new(0, 6)
-KillAllBtn.MouseButton1Click:Connect(function() task.spawn(killAllInstant) end)
-
-CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 5, function() 
+CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 4, function() 
     FovCircle.Visible = states.aimbot
     if states.aimbot then
         SaveConnection(RunService.RenderStepped:Connect(function()
@@ -729,7 +623,7 @@ CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 5, function()
     end
 end)
 
-local FovSliderBgAim = Instance.new("Frame"); FovSliderBgAim.BackgroundColor3 = Theme.BtnOff; FovSliderBgAim.Size = UDim2.new(1, 0, 0, 30); FovSliderBgAim.LayoutOrder = 6; FovSliderBgAim.Parent = TargetTab
+local FovSliderBgAim = Instance.new("Frame"); FovSliderBgAim.BackgroundColor3 = Theme.BtnOff; FovSliderBgAim.Size = UDim2.new(1, 0, 0, 30); FovSliderBgAim.LayoutOrder = 5; FovSliderBgAim.Parent = TargetTab
 Instance.new("UICorner", FovSliderBgAim).CornerRadius = UDim.new(0, 6)
 local FovSliderAim = Instance.new("TextButton"); FovSliderAim.BackgroundColor3 = Theme.Accent; FovSliderAim.Size = UDim2.new(0.6, 0, 1, 0); FovSliderAim.Text = "Aimbot FOV: 300"; FovSliderAim.Font = Enum.Font.GothamBold; FovSliderAim.TextColor3 = Color3.new(1,1,1); FovSliderAim.TextSize = 10; FovSliderAim.Parent = FovSliderBgAim
 Instance.new("UICorner", FovSliderAim).CornerRadius = UDim.new(0, 6)
