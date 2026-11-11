@@ -266,6 +266,7 @@ end
 
 local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
+local FilterTab = CreateTab("Filter Screen", 3) -- НОВАЯ ВКЛАДКА
 
 local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
 local flySpeed = 50
@@ -490,7 +491,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
-GrabGunBtn.LayoutOrder = 7
+GrabGunBtn.LayoutOrder = 6
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -501,17 +502,18 @@ StopBtn.Size = UDim2.new(1, 0, 0, 34)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 8
+StopBtn.LayoutOrder = 7
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
     ColorCorrection.Enabled = false; states.purple_filter = false;
-    FilterBtn2.Text = "FILTER: OFF"; FilterBtn2.BackgroundColor3 = Theme.BtnOff;
+    FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
+-- ==================== ВКЛАДКА TARGET ====================
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -643,20 +645,21 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-local FilterBtn2 = Instance.new("TextButton")
-FilterBtn2.BackgroundColor3 = Theme.BtnOff
-FilterBtn2.Size = UDim2.new(1, 0, 0, 30)
-FilterBtn2.Font = Enum.Font.GothamBold
-FilterBtn2.Text = "FILTER: OFF"
-FilterBtn2.TextColor3 = Theme.Text
-FilterBtn2.TextSize = 11
-FilterBtn2.LayoutOrder = 6
-FilterBtn2.Parent = TargetTab
-Instance.new("UICorner", FilterBtn2).CornerRadius = UDim.new(0, 6)
-FilterBtn2.MouseButton1Click:Connect(function()
+-- ==================== ВКЛАДКА FILTER SCREEN ====================
+local FilterBtn = Instance.new("TextButton")
+FilterBtn.BackgroundColor3 = Theme.BtnOff
+FilterBtn.Size = UDim2.new(1, 0, 0, 30)
+FilterBtn.Font = Enum.Font.GothamBold
+FilterBtn.Text = "FILTER: OFF"
+FilterBtn.TextColor3 = Theme.Text
+FilterBtn.TextSize = 11
+FilterBtn.LayoutOrder = 1
+FilterBtn.Parent = FilterTab
+Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 6)
+FilterBtn.MouseButton1Click:Connect(function()
     states.purple_filter = not states.purple_filter
-    FilterBtn2.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
-    FilterBtn2.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    FilterBtn.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
     ColorCorrection.Enabled = states.purple_filter
 end)
 
