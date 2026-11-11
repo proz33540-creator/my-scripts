@@ -8,7 +8,6 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ID МОДЕЛЕЙ
 local CUSTOM_SKIN_ID = 124994246147928
 local UI_BACKGROUND_ID = 124844189564405
 
@@ -537,7 +536,7 @@ local function removeESP(player)
     end
 end
 
--- ЧИСТОЕ СВЕЧЕНИЕ (БЕЗ БОКСОВ)
+-- ЗАКРАШЕННЫЕ ИГРОКИ С ОБВОДКОЙ
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -546,26 +545,15 @@ local function createESP(player)
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
-    -- Свечение (Неон)
     local hl = Instance.new("Highlight", char)
     hl.Adornee = char
     hl.FillColor = color
-    hl.FillTransparency = 1
+    hl.FillTransparency = 0.5 -- Заливка 50% (закрашивает)
     hl.OutlineColor = color
-    hl.OutlineTransparency = 0
+    hl.OutlineTransparency = 0 -- Яркая обводка
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
 
-    local hlGlow = Instance.new("Highlight", char)
-    hlGlow.Adornee = char
-    hlGlow.FillColor = color
-    hlGlow.FillTransparency = 0.5
-    hlGlow.OutlineColor = color
-    hlGlow.OutlineTransparency = 0.2
-    hlGlow.DepthMode = Enum.HighlightDepthMode.Occluded
-    table.insert(espObjects[player], hlGlow)
-    
-    -- Имя над головой
     if player ~= LocalPlayer then
         local bb = Instance.new("BillboardGui", char.Head)
         bb.AlwaysOnTop = true
@@ -599,7 +587,7 @@ local function updateGunESP()
             if rootPart and not obj:IsDescendantOf(LocalPlayer.Character) then
                 activeGuns[obj] = true
                 if not gunESPObjects[obj] then
-                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = obj
+                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 0.5; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = obj
                     local bb = Instance.new("BillboardGui"); bb.Adornee = rootPart; bb.AlwaysOnTop = true; bb.Size = UDim2.new(0, 200, 0, 50); bb.ExtentsOffset = Vector3.new(0, 1, 0); bb.Parent = obj
                     local text = Instance.new("TextLabel"); text.Size = UDim2.new(1, 0, 1, 0); text.BackgroundTransparency = 1; text.Text = "GUN"; text.TextColor3 = Color3.fromRGB(255, 255, 0); text.Font = Enum.Font.GothamBold; text.TextSize = 14; text.Parent = bb
                     gunESPObjects[obj] = {hl, bb}
