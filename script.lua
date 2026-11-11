@@ -369,7 +369,7 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
--- СМЕНА ТЕМЫ (ИСПРАВЛЕНО)
+-- СМЕНА ТЕМЫ
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
@@ -398,22 +398,11 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
         end
     end
     
-    -- Перекрашиваем все кнопки во всех вкладках (включая Theme)
-    for _, v in pairs(MainTab:GetChildren()) do
+    -- ПРИНУДИТЕЛЬНАЯ ПЕРЕКРАСКА ВСЕХ КНОПОК ВО ВСЕХ ВКЛАДКАХ
+    for _, v in pairs(MainFrame:GetDescendants()) do
         if v:IsA("TextButton") or v:IsA("Frame") then
-            if v.BackgroundColor3 == Theme.BtnOn or v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(200,100,0) then
-                 v.BackgroundColor3 = Theme.BtnOn
-            end
-            if v:IsA("TextLabel") or v:IsA("TextButton") then v.TextColor3 = Theme.TextColor end
-            local stroke = v:FindFirstChildOfClass("UIStroke")
-            if stroke then stroke.Color = Theme.Accent end
-        end
-    end
-    
-    -- То же самое для вкладки Theme
-    for _, v in pairs(ThemeTab:GetChildren()) do
-        if v:IsA("TextButton") or v:IsA("Frame") then
-            if v.BackgroundColor3 == Theme.BtnOn or v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(200,100,0) then
+            -- Если это кнопка/рамка с фоном, похожим на BtnOn, перекрашиваем
+            if v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(255,140,0) or v.BackgroundColor3 == Color3.fromRGB(255,120,170) then
                  v.BackgroundColor3 = Theme.BtnOn
             end
             if v:IsA("TextLabel") or v:IsA("TextButton") then v.TextColor3 = Theme.TextColor end
