@@ -10,7 +10,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
 
--- ТВОИ ID ФОНОВ
+-- ID ФОНОВ
 local BG_DEFAULT = 124844189564405
 local BG_ORANGE = 138974528086602
 local BG_SAKURA = 111536806870768
@@ -37,6 +37,7 @@ local Theme = {
     Text = Color3.fromRGB(255, 255, 255), 
     BtnOff = Color3.fromRGB(35, 20, 50), 
     BtnOn = Color3.fromRGB(120, 0, 200),
+    ActiveTab = Color3.fromRGB(50, 50, 60), -- Серый
     TextColor = Color3.fromRGB(255, 255, 255)
 }
 
@@ -337,7 +338,8 @@ local function CreateTab(name, order)
             TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.6}):Play()
             t.frame.Visible = false
         end
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOn, BackgroundTransparency = 0.2}):Play()
+        -- ВСЕГДА СЕРЫЙ ЦВЕТ ДЛЯ АКТИВНОЙ
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.ActiveTab, BackgroundTransparency = 0}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
         frame.Visible = true
     end)
@@ -389,7 +391,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor)
         t.stroke.Color = Theme.Accent
         t.btn.TextColor3 = Theme.TextColor
         if t.frame.Visible then
-            t.btn.BackgroundColor3 = Theme.BtnOn
+            t.btn.BackgroundColor3 = Theme.ActiveTab -- Серый для активной
         else
             t.btn.BackgroundColor3 = Theme.BtnOff
         end
@@ -1020,7 +1022,7 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
-Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
+Tabs["Main"].btn.BackgroundColor3 = Theme.ActiveTab -- Серый для активной
 Tabs["Main"].frame.Visible = true
 
 task.spawn(function()
