@@ -289,7 +289,7 @@ ContentFrame.Size = UDim2.new(1, -120, 1, -45)
 ContentFrame.ZIndex = 3
 ContentFrame.Parent = MainFrame
 
--- СИСТЕМА ВКЛАДОК С АДАПТИВНЫМИ КНОПКАМИ
+-- ВКЛАДКИ
 local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
@@ -314,7 +314,7 @@ local function CreateTab(name, order)
     frame.Size = UDim2.new(1, -15, 1, -15)
     frame.Position = UDim2.new(0, 5, 0, 5)
     frame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    frame.AutomaticCanvasSize = Enum.AutomaticSize.Y -- ВАЖНО ДЛЯ РАСТЯГИВАНИЯ
+    frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     frame.ScrollBarThickness = 3
     frame.ScrollBarImageColor3 = Theme.Accent
     frame.Visible = false
@@ -529,12 +529,15 @@ local function getPlayerColor(player)
     if char:FindFirstChild("Gun") or bp:FindFirstChild("Gun") then return Color3.fromRGB(0, 100, 255) end
     return Color3.fromRGB(0, 255, 0)
 end
+
 local function removeESP(player)
     if espObjects[player] then 
         for _, obj in pairs(espObjects[player]) do if obj and obj.Parent then obj:Destroy() end end 
         espObjects[player] = nil 
     end
 end
+
+-- НЕОНОВОЕ ESP
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -542,11 +545,43 @@ local function createESP(player)
     if not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChild("Head") then return end
     espObjects[player] = {}
     local color = getPlayerColor(player)
-    local hl = Instance.new("Highlight", char); hl.Adornee = char; hl.FillColor = color; hl.FillTransparency = 0.5; hl.OutlineColor = color
+    
+    -- Основной неоновый контур
+    local hl = Instance.new("Highlight", char)
+    hl.Adornee = char
+    hl.FillColor = color
+    hl.FillTransparency = 1 -- Убираем заливку, оставляем только контур
+    hl.OutlineColor = color
+    hl.OutlineTransparency = 0
+    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
+
+    -- Второй слой для эффекта "свечения" (толще)
+    local hlGlow = Instance.new("Highlight", char)
+    hlGlow.Adornee = char
+    hlGlow.FillColor = color
+    hlGlow.FillTransparency = 0.7 -- Полупрозрачная заливка
+    hlGlow.OutlineColor = color
+    hlGlow.OutlineTransparency = 0.5
+    hlGlow.DepthMode = Enum.HighlightDepthMode.Occluded
+    table.insert(espObjects[player], hlGlow)
+    
     if player ~= LocalPlayer then
-        local bb = Instance.new("BillboardGui", char.Head); bb.AlwaysOnTop = true; bb.Size = UDim2.new(0, 200, 0, 50); bb.ExtentsOffset = Vector3.new(0, 2.5, 0)
-        local lbl = Instance.new("TextLabel", bb); lbl.Size = UDim2.new(1, 0, 1, 0); lbl.BackgroundTransparency = 1; lbl.Text = player.Name; lbl.TextColor3 = color; lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 14
+        local bb = Instance.new("BillboardGui", char.Head)
+        bb.AlwaysOnTop = true
+        bb.Size = UDim2.new(0, 200, 0, 50)
+        bb.ExtentsOffset = Vector3.new(0, 2.5, 0)
+        
+        local lbl = Instance.new("TextLabel", bb)
+        lbl.Size = UDim2.new(1, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = player.Name
+        lbl.TextColor3 = color
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 14
+        lbl.TextStrokeTransparency = 0.5
+        lbl.TextStrokeColor3 = Color3.new(0,0,0)
+        
         table.insert(espObjects[player], bb)
     end
 end
@@ -564,7 +599,7 @@ local function updateGunESP()
             if rootPart and not obj:IsDescendantOf(LocalPlayer.Character) then
                 activeGuns[obj] = true
                 if not gunESPObjects[obj] then
-                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 0.5; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.Parent = obj
+                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = obj
                     local bb = Instance.new("BillboardGui"); bb.Adornee = rootPart; bb.AlwaysOnTop = true; bb.Size = UDim2.new(0, 200, 0, 50); bb.ExtentsOffset = Vector3.new(0, 1, 0); bb.Parent = obj
                     local text = Instance.new("TextLabel"); text.Size = UDim2.new(1, 0, 1, 0); text.BackgroundTransparency = 1; text.Text = "GUN"; text.TextColor3 = Color3.fromRGB(255, 255, 0); text.Font = Enum.Font.GothamBold; text.TextSize = 14; text.Parent = bb
                     gunESPObjects[obj] = {hl, bb}
@@ -580,11 +615,11 @@ local function updateGunESP()
     end
 end
 
--- АДАПТИВНЫЕ КНОПКИ
+-- СТИЛЬНЫЕ КНОПКИ
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
-    btn.Size = UDim2.new(1, 0, 0, 34) -- Ширина 100%, высота 34
+    btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
     btn.TextColor3 = Theme.Text
