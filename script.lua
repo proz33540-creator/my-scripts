@@ -275,7 +275,6 @@ local espObjects = {}
 local selectedTarget = nil
 local connections = {}
 local currentParticleType = "None"
-local aimbotConnection = nil
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "MM2_PurpleFilter"
@@ -654,9 +653,31 @@ local function refreshPlayerList()
     for _, child in ipairs(PlayerListScroll:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
-    
     local count = 0
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
             count = count + 1
-            local p
+            local pBtn = Instance.new("TextButton")
+            pBtn.BackgroundColor3 = Theme.Main
+            pBtn.Size = UDim2.new(1, -4, 0, 28)
+            pBtn.Font = Enum.Font.GothamBold
+            pBtn.Text = p.Name
+            pBtn.TextColor3 = Theme.Text
+            pBtn.TextSize = 11
+            pBtn.Parent = PlayerListScroll
+            Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 4)
+            pBtn.MouseButton1Click:Connect(function()
+                selectedTarget = p
+                SelectTargetBtn.Text = "Target: " .. p.Name
+                PlayerListScroll.Visible = false
+            end)
+        end
+    end
+    PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, count * 32)
+end
+
+refreshPlayerList()
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
+
+SelectTarget
