@@ -9,7 +9,8 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 136096996638435
+-- ID твоей картинки с кошкой
+local UI_BACKGROUND_ID = 136096996638435 
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -92,9 +93,10 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОКНО
+-- ОСНОВНОЕ ОКНО (Прозрачное, чтобы был виден фон)
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
+MainFrame.BackgroundTransparency = 1 -- Делаем окно прозрачным
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -107,13 +109,14 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.3
 
+-- КАРТИНКА-ФОН
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0.3
+BackgroundImage.ImageTransparency = 0.1 -- Чем меньше, тем ярче картинка
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 
@@ -298,7 +301,7 @@ local TargetTab = CreateTab("Target", 2)
 local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
--- ВСЁ ВКЛЮЧЕНО ПО УМОЛЧАНИЮ (true)
+-- ВСЁ ВКЛЮЧЕНО ПО УМОЛЧАНИЮ
 local states = { esp = true, noclip = true, fly = true, autofarm = true, aimbot = true, hitbox = true, purple_filter = true, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
@@ -314,7 +317,7 @@ ColorCorrection.Name = "PurpleFilter"
 ColorCorrection.TintColor = Color3.fromRGB(120, 0, 255)
 ColorCorrection.Contrast = 0.15
 ColorCorrection.Saturation = 0.1
-ColorCorrection.Enabled = true -- Включено
+ColorCorrection.Enabled = true
 ColorCorrection.Parent = Lighting
 
 local function toggleCustomSkin()
@@ -537,7 +540,6 @@ local function updateGunESP()
 end
 
 local function CreateButton(parent, name, displayName, order, onClick)
-    -- По умолчанию ставим ON, так как в states стоит true
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
     btn.Size = UDim2.new(1, 0, 0, 30)
@@ -568,12 +570,10 @@ local function CreateButton(parent, name, displayName, order, onClick)
     return btn
 end
 
--- ВЫЗЫВАЕМ ФУНКЦИИ СРАЗУ ПРИ ЗАПУСКЕ
 startFly()
 startNoclip()
 startAutoFarm()
 updateGunESP()
--- Включаем Hitbox и Aimbot по умолчанию
 task.spawn(function() 
     wait(1)
     if states.hitbox then 
