@@ -680,4 +680,113 @@ refreshPlayerList()
 Players.PlayerAdded:Connect(refreshPlayerList)
 Players.PlayerRemoving:Connect(refreshPlayerList)
 
-SelectTarget
+SelectTargetBtn.MouseButton1Click:Connect(function()
+    PlayerListScroll.Visible = not PlayerListScroll.Visible
+    if PlayerListScroll.Visible then refreshPlayerList() end
+end)
+
+local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.Size = UDim2.new(1, 0, 0, 30); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.Parent = TargetTab
+Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 6)
+TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
+
+local KillAllBtn = Instance.new("TextButton"); KillAllBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); KillAllBtn.Size = UDim2.new(1, 0, 0, 34); KillAllBtn.Font = Enum.Font.GothamBold; KillAllBtn.Text = "KILL ALL (INSTANT)"; KillAllBtn.TextColor3 = Color3.new(1,1,1); KillAllBtn.LayoutOrder = 4; KillAllBtn.Parent = TargetTab
+Instance.new("UICorner", KillAllBtn).CornerRadius = UDim.new(0, 6)
+KillAllBtn.MouseButton1Click:Connect(function() task.spawn(killAllInstant) end)
+
+CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 5, function() 
+    FovCircle.Visible = states.aimbot
+    if states.aimbot then
+        SaveConnection(RunService.RenderStepped:Connect(function()
+            if not states.aimbot then return end
+            local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+            local closest = nil
+            local minDist = fovSize / 2
+            local currentPing = 0
+            pcall(function() currentPing = Stats.Network.ServerStatsItem["Data Ping"]:GetValue() / 1000 end)
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                    local hasKnife = (p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife"))
+                    if hasKnife then
+                        local headPos, onScreen = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                        if onScreen then
+                            local dist = (Vector2.new(headPos.X, headPos.Y) - screenCenter).Magnitude
+                            if dist < minDist then
+                                minDist = dist
+                                closest = p
+                            end
+                        end
+                    end
+                end
+            end
+            if closest then
+                local head = closest.Character:FindFirstChild("Head")
+                if head then
+                    local predPos = head.Position + (head.AssemblyLinearVelocity * currentPing)
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.lookAt(Camera.CFrame.Position, predPos), 0.5)
+                end
+            end
+        end))
+    end
+end)
+
+local FovSliderBgAim = Instance.new("Frame"); FovSliderBgAim.BackgroundColor3 = Theme.BtnOff; FovSliderBgAim.Size = UDim2.new(1, 0, 0, 30); FovSliderBgAim.LayoutOrder = 6; FovSliderBgAim.Parent = TargetTab
+Instance.new("UICorner", FovSliderBgAim).CornerRadius = UDim.new(0, 6)
+local FovSliderAim = Instance.new("TextButton"); FovSliderAim.BackgroundColor3 = Theme.Accent; FovSliderAim.Size = UDim2.new(0.6, 0, 1, 0); FovSliderAim.Text = "Aimbot FOV: 300"; FovSliderAim.Font = Enum.Font.GothamBold; FovSliderAim.TextColor3 = Color3.new(1,1,1); FovSliderAim.TextSize = 10; FovSliderAim.Parent = FovSliderBgAim
+Instance.new("UICorner", FovSliderAim).CornerRadius = UDim.new(0, 6)
+local draggingFovAim = false
+FovSliderAim.MouseButton1Down:Connect(function() draggingFovAim = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFovAim = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingFovAim then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = FovSliderBgAim.AbsolutePosition.X; local frameSize = FovSliderBgAim.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.1, 1)
+        FovSliderAim.Size = UDim2.new(relativeX, 0, 1, 0)
+        fovSize = math.floor(relativeX * 500) + 50
+        FovSliderAim.Text = "Aimbot FOV: " .. fovSize
+        FovCircle.Size = UDim2.new(0, fovSize, 0, fovSize)
+        FovCircle.Position = UDim2.new(0.5, -fovSize/2, 0.5, -fovSize/2)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
+        if MainFrame.Visible then
+            MainFrame.Visible = false; MinimizedFrame.Visible = true; MinimizedFrame.Position = MainFrame.Position
+        else
+            MainFrame.Visible = true; MinimizedFrame.Visible = false; MainFrame.Position = MinimizedFrame.Position
+        end
+    end
+end)
+
+Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
+Tabs["Main"].frame.Visible = true
+
+task.spawn(function()
+    while task.wait(1) do
+        if states.esp then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    if not espObjects[p] then createESP(p) end
+                else
+                    removeESP(p)
+                end
+            end
+        end
+    end
+end)
+
+SaveConnection(RunService.Heartbeat:Connect(function()
+    if not states.esp then return end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and espObjects[p] then
+            local c = getPlayerColor(p)
+            for _, o in pairs(espObjects[p]) do
+                if o:IsA("Highlight") then o.FillColor = c; o.OutlineColor = c
+                elseif o:IsA("BillboardGui") and o:FindFirstChild("TextLabel") then o.TextLabel.TextColor3 = c end
+            end
+        end
+    end
+end))
+
+for _, p in pairs(Players:GetPlayers()) do createESP(p) end
