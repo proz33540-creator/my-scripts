@@ -120,12 +120,13 @@ BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 
--- ВЕРХНЯЯ ПАНЕЛЬ
+-- ВЕРХНЯЯ ПАНЕЛЬ (С ОБРЕЗКОЙ УГЛОВ)
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
 TopBar.BackgroundTransparency = 0.2
 TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.ZIndex = 2
+TopBar.ClipsDescendants = true -- Включаем обрезку, чтобы кнопки не вылезали
 TopBar.Parent = MainFrame
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
 local TopGradient = Instance.new("UIGradient")
@@ -293,7 +294,7 @@ local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
-    btn.BackgroundTransparency = 0.4 -- Стеклянный эффект
+    btn.BackgroundTransparency = 0.4
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
@@ -307,7 +308,7 @@ local function CreateTab(name, order)
     local stroke = Instance.new("UIStroke", btn)
     stroke.Color = Theme.Accent
     stroke.Thickness = 1.5
-    stroke.Transparency = 0.6 -- Полупрозрачная обводка
+    stroke.Transparency = 0.6
     
     local frame = Instance.new("ScrollingFrame")
     frame.BackgroundTransparency = 1
@@ -625,7 +626,7 @@ end)
 
 local FovBgMain = Instance.new("Frame")
 FovBgMain.BackgroundColor3 = Theme.BtnOff
-FovBgMain.BackgroundTransparency = 0.4 -- Стеклянный эффект
+FovBgMain.BackgroundTransparency = 0.4
 FovBgMain.Size = UDim2.new(1, 0, 0, 34)
 FovBgMain.LayoutOrder = 5
 FovBgMain.ZIndex = 4
