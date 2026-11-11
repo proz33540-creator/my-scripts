@@ -9,7 +9,11 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 124844189564405
+
+-- ТВОИ ID ФОНОВ
+local BG_DEFAULT = 124844189564405
+local BG_ORANGE = 138974528086602
+local BG_SAKURA = 111536806870768
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -109,17 +113,17 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.2
 
--- ФОН (С ЗАКРУГЛЕНИЕМ)
+-- ФОН
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
+BackgroundImage.Image = "rbxassetid://" .. BG_DEFAULT
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
-Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12) -- Закругляем саму картинку
+Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
 
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
@@ -324,7 +328,7 @@ local function CreateTab(name, order)
     frame.Parent = ContentFrame
     Instance.new("UIListLayout", frame).Padding = UDim.new(0, 8)
     
-    Tabs[name] = {btn = btn, frame = frame}
+    Tabs[name] = {btn = btn, frame = frame, stroke = stroke}
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
@@ -344,6 +348,7 @@ local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
 local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
+local ThemeTab = CreateTab("Theme", 5)
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
@@ -361,6 +366,42 @@ ColorCorrection.Contrast = 0.15
 ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
+
+-- СМЕНА ТЕМЫ
+local function changeTheme(bgId, accentColor, accentDark, btnOn)
+    BackgroundImage.Image = "rbxassetid://" .. bgId
+    Theme.Accent = accentColor
+    Theme.AccentDark = accentDark
+    Theme.BtnOn = btnOn
+    
+    ColorCorrection.TintColor = accentColor
+    
+    UIStroke.Color = Theme.Accent
+    TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))})
+    MinimizeBtn.BackgroundColor3 = Theme.AccentDark
+    MinStroke.Color = Theme.Accent
+    ResizeBtn.BackgroundColor3 = Theme.AccentDark
+    SideBar.BackgroundColor3 = Theme.Secondary
+    
+    for name, t in pairs(Tabs) do
+        t.stroke.Color = Theme.Accent
+        if t.frame.Visible then
+            t.btn.BackgroundColor3 = Theme.BtnOn
+        else
+            t.btn.BackgroundColor3 = Theme.BtnOff
+        end
+    end
+    
+    for _, v in pairs(MainTab:GetChildren()) do
+        if v:IsA("TextButton") or v:IsA("Frame") then
+            if v.BackgroundColor3 == Theme.BtnOn or v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(200,100,0) then
+                 v.BackgroundColor3 = Theme.BtnOn
+            end
+            local stroke = v:FindFirstChildOfClass("UIStroke")
+            if stroke then stroke.Color = Theme.Accent end
+        end
+    end
+end
 
 local function toggleCustomSkin()
     local char = LocalPlayer.Character
@@ -538,7 +579,6 @@ local function removeESP(player)
     end
 end
 
--- ТОЛЬКО ИГРОКИ (СВЕЧЕНИЕ + ОБВОДКА)
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -933,6 +973,38 @@ SkinInfo.TextSize = 11
 SkinInfo.LayoutOrder = 2
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
+
+-- ТЕМА (ФОНЫ)
+local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, order)
+    local btn = Instance.new("TextButton")
+    btn.BackgroundColor3 = Theme.BtnOff
+    btn.BackgroundTransparency = 0.4
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.TextColor3 = Theme.Text
+    btn.TextSize = 12
+    btn.LayoutOrder = order
+    btn.ZIndex = 4
+    btn.Parent = ThemeTab
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    
+    local stroke = Instance.new("UIStroke", btn)
+    stroke.Color = Theme.Accent
+    stroke.Thickness = 1
+    stroke.Transparency = 0.8
+    
+    btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
+    
+    btn.MouseButton1Click:Connect(function()
+        changeTheme(bgId, accent, accentDark, btnOn)
+    end)
+end
+
+CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), 1)
+CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), 2)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), 3)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
