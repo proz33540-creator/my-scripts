@@ -293,6 +293,7 @@ local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
+    btn.BackgroundTransparency = 0.4 -- Стеклянный эффект
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
@@ -306,7 +307,7 @@ local function CreateTab(name, order)
     local stroke = Instance.new("UIStroke", btn)
     stroke.Color = Theme.Accent
     stroke.Thickness = 1.5
-    stroke.Transparency = 0.5
+    stroke.Transparency = 0.6 -- Полупрозрачная обводка
     
     local frame = Instance.new("ScrollingFrame")
     frame.BackgroundTransparency = 1
@@ -325,11 +326,11 @@ local function CreateTab(name, order)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
-            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff}):Play()
-            TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.5}):Play()
+            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0.4}):Play()
+            TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.6}):Play()
             t.frame.Visible = false
         end
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOn}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOn, BackgroundTransparency = 0.2}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
         frame.Visible = true
     end)
@@ -576,6 +577,7 @@ end
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
+    btn.BackgroundTransparency = 0.4 -- Стеклянный эффект
     btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
@@ -592,11 +594,11 @@ local function CreateButton(parent, name, displayName, order, onClick)
     stroke.Transparency = states[name] and 0 or 0.8
     
     btn.MouseEnter:Connect(function() 
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(110, 0, 170)}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(110, 0, 170), BackgroundTransparency = 0.2}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
     end)
     btn.MouseLeave:Connect(function() 
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff, BackgroundTransparency = 0.4}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = states[name] and 0 or 0.8}):Play()
     end)
     
@@ -623,6 +625,7 @@ end)
 
 local FovBgMain = Instance.new("Frame")
 FovBgMain.BackgroundColor3 = Theme.BtnOff
+FovBgMain.BackgroundTransparency = 0.4 -- Стеклянный эффект
 FovBgMain.Size = UDim2.new(1, 0, 0, 34)
 FovBgMain.LayoutOrder = 5
 FovBgMain.ZIndex = 4
@@ -661,6 +664,7 @@ end)
 
 local GrabGunBtn = Instance.new("TextButton")
 GrabGunBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+GrabGunBtn.BackgroundTransparency = 0.4
 GrabGunBtn.Size = UDim2.new(1, 0, 0, 34)
 GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
@@ -674,6 +678,7 @@ GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
 
 local StopBtn = Instance.new("TextButton")
 StopBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+StopBtn.BackgroundTransparency = 0.4
 StopBtn.Size = UDim2.new(1, 0, 0, 36)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
@@ -693,6 +698,7 @@ end)
 
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
+SelectTargetBtn.BackgroundTransparency = 0.4
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 34); 
 SelectTargetBtn.Font = Enum.Font.GothamBold; 
 SelectTargetBtn.Text = "Target: None"; 
@@ -704,6 +710,7 @@ Instance.new("UICorner", SelectTargetBtn).CornerRadius = UDim.new(0, 8)
 
 local PlayerListScroll = Instance.new("ScrollingFrame")
 PlayerListScroll.BackgroundColor3 = Theme.BtnOff
+PlayerListScroll.BackgroundTransparency = 0.4
 PlayerListScroll.Size = UDim2.new(1, 0, 0, 100)
 PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 PlayerListScroll.ScrollBarThickness = 3
@@ -725,6 +732,7 @@ local function refreshPlayerList()
             count = count + 1
             local pBtn = Instance.new("TextButton")
             pBtn.BackgroundColor3 = Theme.Main
+            pBtn.BackgroundTransparency = 0.4
             pBtn.Size = UDim2.new(1, -4, 0, 28)
             pBtn.Font = Enum.Font.GothamBold
             pBtn.Text = p.Name
@@ -752,7 +760,7 @@ SelectTargetBtn.MouseButton1Click:Connect(function()
     if PlayerListScroll.Visible then refreshPlayerList() end
 end)
 
-local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
+local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.BackgroundTransparency = 0.4; TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
 Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 8)
 TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
 
@@ -794,6 +802,7 @@ end)
 
 local AimFovBg = Instance.new("Frame"); 
 AimFovBg.BackgroundColor3 = Theme.BtnOff; 
+AimFovBg.BackgroundTransparency = 0.4
 AimFovBg.Size = UDim2.new(1, 0, 0, 34); 
 AimFovBg.LayoutOrder = 5; 
 AimFovBg.ZIndex = 4
@@ -833,6 +842,7 @@ end)
 
 local HitboxBtn = Instance.new("TextButton")
 HitboxBtn.BackgroundColor3 = Theme.BtnOff
+HitboxBtn.BackgroundTransparency = 0.4
 HitboxBtn.Size = UDim2.new(1, 0, 0, 36)
 HitboxBtn.Font = Enum.Font.GothamBold
 HitboxBtn.Text = "HITBOX EXPANDER: OFF"
@@ -874,6 +884,7 @@ end)
 
 local FilterBtn = Instance.new("TextButton")
 FilterBtn.BackgroundColor3 = Theme.BtnOff
+FilterBtn.BackgroundTransparency = 0.4
 FilterBtn.Size = UDim2.new(1, 0, 0, 34)
 FilterBtn.Font = Enum.Font.GothamBold
 FilterBtn.Text = "FILTER: OFF"
@@ -891,7 +902,24 @@ FilterBtn.MouseButton1Click:Connect(function()
 end)
 
 -- АВАТАР
-CreateButton(AvatarTab, "custom_skin", "CUSTOM SKIN", 1, function() toggleCustomSkin() end)
+local SkinBtn = Instance.new("TextButton")
+SkinBtn.BackgroundColor3 = Theme.BtnOff
+SkinBtn.BackgroundTransparency = 0.4
+SkinBtn.Size = UDim2.new(1, 0, 0, 36)
+SkinBtn.Font = Enum.Font.GothamBold
+SkinBtn.Text = "CUSTOM SKIN: OFF"
+SkinBtn.TextColor3 = Theme.Text
+SkinBtn.TextSize = 12
+SkinBtn.LayoutOrder = 1
+SkinBtn.ZIndex = 4
+SkinBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 8)
+SkinBtn.MouseButton1Click:Connect(function()
+    states.custom_skin = not states.custom_skin
+    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
+    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
+    toggleCustomSkin()
+end)
 
 local SkinInfo = Instance.new("TextLabel")
 SkinInfo.BackgroundTransparency = 1
