@@ -109,7 +109,7 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.2
 
--- ФОН
+-- ФОН (С ЗАКРУГЛЕНИЕМ)
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
@@ -119,14 +119,15 @@ BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
+Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12) -- Закругляем саму картинку
 
--- ВЕРХНЯЯ ПАНЕЛЬ (С ОБРЕЗКОЙ УГЛОВ)
+-- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
 TopBar.BackgroundTransparency = 0.2
 TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.ZIndex = 2
-TopBar.ClipsDescendants = true -- Включаем обрезку, чтобы кнопки не вылезали
+TopBar.ClipsDescendants = true
 TopBar.Parent = MainFrame
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
 local TopGradient = Instance.new("UIGradient")
@@ -578,7 +579,7 @@ end
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
-    btn.BackgroundTransparency = 0.4 -- Стеклянный эффект
+    btn.BackgroundTransparency = 0.4
     btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
