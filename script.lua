@@ -536,7 +536,7 @@ local function removeESP(player)
     end
 end
 
--- СВЕЧЕНИЕ + ОБВОДКА
+-- ЗАКРАШЕННЫЕ ИГРОКИ С ОБВОДКОЙ (СКВОЗЬ СТЕНЫ)
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -545,7 +545,6 @@ local function createESP(player)
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
-    -- Основной Highlight (закраска + обводка)
     local hl = Instance.new("Highlight", char)
     hl.Adornee = char
     hl.FillColor = color
@@ -555,29 +554,6 @@ local function createESP(player)
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
 
-    -- Второй слой для эффекта неонового свечения
-    local hlGlow = Instance.new("Highlight", char)
-    hlGlow.Adornee = char
-    hlGlow.FillColor = color
-    hlGlow.FillTransparency = 0.7
-    hlGlow.OutlineColor = color
-    hlGlow.OutlineTransparency = 0.3
-    hlGlow.DepthMode = Enum.HighlightDepthMode.Occluded
-    table.insert(espObjects[player], hlGlow)
-
-    -- Неоновая обводка (SelectionBox)
-    local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
-    if torso then
-        local box = Instance.new("SelectionBox")
-        box.Adornee = torso
-        box.Color3 = color
-        box.LineThickness = 0.1
-        box.Transparency = 0.5
-        box.SurfaceTransparency = 1
-        box.Parent = torso
-        table.insert(espObjects[player], box)
-    end
-    
     if player ~= LocalPlayer then
         local bb = Instance.new("BillboardGui", char.Head)
         bb.AlwaysOnTop = true
