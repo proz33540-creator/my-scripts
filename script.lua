@@ -8,7 +8,6 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ТВОЙ ID МОДЕЛИ
 local CUSTOM_SKIN_ID = 124994246147928
 
 if _G.MM2_Hub_Connections then
@@ -40,6 +39,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
+-- ОВЕРЛЕЙ
 local OverlayFrame = Instance.new("Frame")
 OverlayFrame.BackgroundColor3 = Theme.Main
 OverlayFrame.BackgroundTransparency = 0.5
@@ -91,6 +91,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
+-- ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
@@ -203,6 +204,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
+-- ВКЛАДКИ
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
 SideBar.Position = UDim2.new(0, 0, 0, 40)
@@ -272,7 +274,7 @@ local TargetTab = CreateTab("Target", 2)
 local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
-local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false, custom_skin = false }
+local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
 local gunESPObjects = {}
@@ -280,6 +282,7 @@ local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
 local customSkinModel = nil
+local hitboxConnection = nil
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "PurpleFilter"
@@ -289,14 +292,11 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
--- ЗАГРУЗКА СКИНА С ЗАПАСНЫМ ВАРИАНТОМ
 local function toggleCustomSkin()
     local char = LocalPlayer.Character
     if not char then return end
-
     if states.custom_skin then
         if CUSTOM_SKIN_ID == 0 then return end
-        
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -304,18 +304,13 @@ local function toggleCustomSkin()
                 part:Destroy()
             end
         end
-
         task.spawn(function()
             local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. CUSTOM_SKIN_ID)[1] end)
             if success and model then
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    if customSkinModel:IsA("Model") then 
-                        customSkinModel:PivotTo(hrp.CFrame) 
-                    else 
-                        customSkinModel.CFrame = hrp.CFrame 
-                    end
+                    if customSkinModel:IsA("Model") then customSkinModel:PivotTo(hrp.CFrame) else customSkinModel.CFrame = hrp.CFrame end
                     customSkinModel.Parent = char
                     for _, part in pairs(customSkinModel:GetDescendants()) do
                         if part:IsA("BasePart") then
@@ -329,7 +324,6 @@ local function toggleCustomSkin()
                     end
                 end
             else
-                -- Если модель не единая, грузим как MeshPart
                 local successMesh, meshPart = pcall(function()
                     local mp = Instance.new("MeshPart")
                     mp.MeshId = "rbxassetid://" .. CUSTOM_SKIN_ID
@@ -416,20 +410,12 @@ local farmBV, farmBG
 local function startAutoFarm()
     if connections.farm then connections.farm:Disconnect() end
     states.noclip = true
-    
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     if hrp then
-        farmBV = Instance.new("BodyVelocity", hrp)
-        farmBV.MaxForce = Vector3.new(9e5, 9e5, 9e5)
-        farmBV.Velocity = Vector3.new(0, 0, 0)
-        
-        farmBG = Instance.new("BodyGyro", hrp)
-        farmBG.MaxTorque = Vector3.new(9e5, 9e5, 9e5)
-        farmBG.P = 9e4
-        farmBG.CFrame = hrp.CFrame
+        farmBV = Instance.new("BodyVelocity", hrp); farmBV.MaxForce = Vector3.new(9e5, 9e5, 9e5); farmBV.Velocity = Vector3.new(0, 0, 0)
+        farmBG = Instance.new("BodyGyro", hrp); farmBG.MaxTorque = Vector3.new(9e5, 9e5, 9e5); farmBG.P = 9e4; farmBG.CFrame = hrp.CFrame
     end
-
     connections.farm = task.spawn(function()
         while states.autofarm do
             local c = LocalPlayer.Character
@@ -446,7 +432,6 @@ local function startAutoFarm()
                         end
                     end
                 end
-                
                 if nearestPos then
                     local moveDir = (nearestPos - h.Position).Unit
                     farmBV.Velocity = moveDir * 50
@@ -463,14 +448,10 @@ local function startAutoFarm()
     end)
 end
 local function stopAutoFarm()
-    states.autofarm = false
-    states.noclip = false
+    states.autofarm = false; states.noclip = false
     if farmBV then farmBV:Destroy() farmBV = nil end
     if farmBG then farmBG:Destroy() farmBG = nil end
-    if connections.farm then 
-        task.cancel(connections.farm)
-        connections.farm = nil
-    end
+    if connections.farm then task.cancel(connections.farm); connections.farm = nil end
 end
 
 local function grabGun()
@@ -481,10 +462,7 @@ local function grabGun()
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj.Name == "GunDrop" or (obj:IsA("Tool") and obj.Name == "Gun") then
             local targetPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
-            if targetPart and targetPart.Parent ~= char then
-                gunDrop = targetPart
-                break
-            end
+            if targetPart and targetPart.Parent ~= char then gunDrop = targetPart; break end
         end
     end
     if gunDrop then
@@ -499,10 +477,8 @@ local function getPlayerColor(player)
     local char = player.Character
     local bp = player.Backpack
     if not char or not bp then return Color3.fromRGB(0, 255, 0) end
-    if char:FindFirstChild("Knife") then return Color3.fromRGB(255, 0, 0) end
-    if char:FindFirstChild("Gun") then return Color3.fromRGB(0, 100, 255) end
-    if bp:FindFirstChild("Knife") then return Color3.fromRGB(255, 0, 0) end
-    if bp:FindFirstChild("Gun") then return Color3.fromRGB(0, 100, 255) end
+    if char:FindFirstChild("Knife") or bp:FindFirstChild("Knife") then return Color3.fromRGB(255, 0, 0) end
+    if char:FindFirstChild("Gun") or bp:FindFirstChild("Gun") then return Color3.fromRGB(0, 100, 255) end
     return Color3.fromRGB(0, 255, 0)
 end
 local function removeESP(player)
@@ -530,10 +506,8 @@ end
 local function updateGunESP()
     if not states.esp then
         for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
-        gunESPObjects = {}
-        return
+        gunESPObjects = {}; return
     end
-
     local activeGuns = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
         local name = string.lower(obj.Name)
@@ -542,35 +516,14 @@ local function updateGunESP()
             if rootPart and not obj:IsDescendantOf(LocalPlayer.Character) then
                 activeGuns[obj] = true
                 if not gunESPObjects[obj] then
-                    local hl = Instance.new("Highlight")
-                    hl.Adornee = obj
-                    hl.FillColor = Color3.fromRGB(255, 255, 0)
-                    hl.FillTransparency = 0.5
-                    hl.OutlineColor = Color3.fromRGB(255, 255, 0)
-                    hl.Parent = obj
-                    
-                    local bb = Instance.new("BillboardGui")
-                    bb.Adornee = rootPart
-                    bb.AlwaysOnTop = true
-                    bb.Size = UDim2.new(0, 200, 0, 50)
-                    bb.ExtentsOffset = Vector3.new(0, 1, 0)
-                    bb.Parent = obj
-                    
-                    local text = Instance.new("TextLabel")
-                    text.Size = UDim2.new(1, 0, 1, 0)
-                    text.BackgroundTransparency = 1
-                    text.Text = "GUN"
-                    text.TextColor3 = Color3.fromRGB(255, 255, 0)
-                    text.Font = Enum.Font.GothamBold
-                    text.TextSize = 14
-                    text.Parent = bb
-
+                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 0.5; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.Parent = obj
+                    local bb = Instance.new("BillboardGui"); bb.Adornee = rootPart; bb.AlwaysOnTop = true; bb.Size = UDim2.new(0, 200, 0, 50); bb.ExtentsOffset = Vector3.new(0, 1, 0); bb.Parent = obj
+                    local text = Instance.new("TextLabel"); text.Size = UDim2.new(1, 0, 1, 0); text.BackgroundTransparency = 1; text.Text = "GUN"; text.TextColor3 = Color3.fromRGB(255, 255, 0); text.Font = Enum.Font.GothamBold; text.TextSize = 14; text.Parent = bb
                     gunESPObjects[obj] = {hl, bb}
                 end
             end
         end
     end
-
     for obj, tbl in pairs(gunESPObjects) do
         if not activeGuns[obj] or not obj or not obj.Parent then
             for _, v in pairs(tbl) do if v and v.Parent then v:Destroy() end end
@@ -654,7 +607,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
-GrabGunBtn.LayoutOrder = 7
+GrabGunBtn.LayoutOrder = 6
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -665,11 +618,12 @@ StopBtn.Size = UDim2.new(1, 0, 0, 34)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 8
+StopBtn.LayoutOrder = 7
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
+    states.hitbox = false; 
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
@@ -678,33 +632,7 @@ StopBtn.MouseButton1Click:Connect(function()
     gunESPObjects = {}
 end)
 
-local SkinBtn = Instance.new("TextButton")
-SkinBtn.BackgroundColor3 = Theme.BtnOff
-SkinBtn.Size = UDim2.new(1, 0, 0, 34)
-SkinBtn.Font = Enum.Font.GothamBold
-SkinBtn.Text = "CUSTOM SKIN: OFF"
-SkinBtn.TextColor3 = Theme.Text
-SkinBtn.TextSize = 12
-SkinBtn.LayoutOrder = 1
-SkinBtn.Parent = AvatarTab
-Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 6)
-SkinBtn.MouseButton1Click:Connect(function()
-    states.custom_skin = not states.custom_skin
-    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
-    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
-    toggleCustomSkin()
-end)
-
-local SkinInfo = Instance.new("TextLabel")
-SkinInfo.BackgroundTransparency = 1
-SkinInfo.Size = UDim2.new(1, 0, 0, 30)
-SkinInfo.Font = Enum.Font.GothamBold
-SkinInfo.Text = "Your custom model will appear here."
-SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
-SkinInfo.TextSize = 11
-SkinInfo.LayoutOrder = 2
-SkinInfo.Parent = AvatarTab
-
+-- ВКЛАДКА TARGET
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -836,6 +764,53 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+-- КНОПКА HITBOX EXPANDER (БЬЕТ БЕЗ ТП)
+local HitboxBtn = Instance.new("TextButton")
+HitboxBtn.BackgroundColor3 = Theme.BtnOff
+HitboxBtn.Size = UDim2.new(1, 0, 0, 34)
+HitboxBtn.Font = Enum.Font.GothamBold
+HitboxBtn.Text = "HITBOX EXPANDER: OFF"
+HitboxBtn.TextColor3 = Color3.new(1,1,1)
+HitboxBtn.TextSize = 12
+HitboxBtn.LayoutOrder = 6
+HitboxBtn.Parent = TargetTab
+Instance.new("UICorner", HitboxBtn).CornerRadius = UDim.new(0, 6)
+
+HitboxBtn.MouseButton1Click:Connect(function()
+    states.hitbox = not states.hitbox
+    HitboxBtn.Text = "HITBOX EXPANDER: " .. (states.hitbox and "ON" or "OFF")
+    HitboxBtn.BackgroundColor3 = states.hitbox and Theme.BtnOn or Theme.BtnOff
+    
+    if states.hitbox then
+        if hitboxConnection then hitboxConnection:Disconnect() end
+        hitboxConnection = RunService.RenderStepped:Connect(function()
+            local char = LocalPlayer.Character
+            local knife = char and (char:FindFirstChild("Knife") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Knife")))
+            if knife and knife:FindFirstChild("Handle") then
+                local handle = knife.Handle
+                if handle and handle.Parent == char then
+                    local closestPlayer, minD = nil, 5000
+                    local myPos = char.HumanoidRootPart.Position
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local d = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
+                            if d < minD then minD = d; closestPlayer = p end
+                        end
+                    end
+                    if closestPlayer then
+                        handle.CFrame = CFrame.new(closestPlayer.Character.HumanoidRootPart.Position)
+                    else
+                        handle.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2)
+                    end
+                end
+            end
+        end)
+    else
+        if hitboxConnection then hitboxConnection:Disconnect() hitboxConnection = nil end
+    end
+end)
+
+-- FILTER
 local FilterBtn = Instance.new("TextButton")
 FilterBtn.BackgroundColor3 = Theme.BtnOff
 FilterBtn.Size = UDim2.new(1, 0, 0, 30)
@@ -852,6 +827,34 @@ FilterBtn.MouseButton1Click:Connect(function()
     FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
     ColorCorrection.Enabled = states.purple_filter
 end)
+
+-- АВАТАР
+local SkinBtn = Instance.new("TextButton")
+SkinBtn.BackgroundColor3 = Theme.BtnOff
+SkinBtn.Size = UDim2.new(1, 0, 0, 34)
+SkinBtn.Font = Enum.Font.GothamBold
+SkinBtn.Text = "CUSTOM SKIN: OFF"
+SkinBtn.TextColor3 = Theme.Text
+SkinBtn.TextSize = 12
+SkinBtn.LayoutOrder = 1
+SkinBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 6)
+SkinBtn.MouseButton1Click:Connect(function()
+    states.custom_skin = not states.custom_skin
+    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
+    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
+    toggleCustomSkin()
+end)
+
+local SkinInfo = Instance.new("TextLabel")
+SkinInfo.BackgroundTransparency = 1
+SkinInfo.Size = UDim2.new(1, 0, 0, 30)
+SkinInfo.Font = Enum.Font.GothamBold
+SkinInfo.Text = "Your custom model will appear here."
+SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
+SkinInfo.TextSize = 11
+SkinInfo.LayoutOrder = 2
+SkinInfo.Parent = AvatarTab
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
