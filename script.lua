@@ -10,6 +10,8 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
 local UI_BACKGROUND_ID = 107174125347585
+local GUN_MODEL_ID = 78465406426440
+local KNIFE_MODEL_ID = 13290314307
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -289,7 +291,6 @@ ContentFrame.Size = UDim2.new(1, -120, 1, -45)
 ContentFrame.ZIndex = 3
 ContentFrame.Parent = MainFrame
 
--- ВКЛАДКИ
 local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
@@ -344,7 +345,7 @@ local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false, custom_weapons = false }
 local flySpeed = 50
 local espObjects = {}
 local gunESPObjects = {}
@@ -403,6 +404,58 @@ local function toggleCustomSkin()
         if hum then
             hum:RemoveAccessories()
             if hum:GetAppliedDescription() then hum:ApplyDescription(hum:GetAppliedDescription()) end
+        end
+    end
+end
+
+-- КАСТОМНОЕ ОРУЖИЕ
+local function applyCustomWeapons()
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    for _, tool in pairs(char:GetChildren()) do
+        if tool:IsA("Tool") then
+            local isGun = tool.Name:lower():find("gun") or tool.Name:lower():find("revolver")
+            local isKnife = tool.Name:lower():find("knife")
+            
+            if (isGun and GUN_MODEL_ID ~= 0) or (isKnife and KNIFE_MODEL_ID ~= 0) then
+                if states.custom_weapons then
+                    local handle = tool:FindFirstChild("Handle")
+                    if handle then
+                        -- Прячем стандартную модель
+                        for _, part in pairs(tool:GetChildren()) do
+                            if part:IsA("BasePart") and part ~= handle then part.Transparency = 1 end
+                        end
+                        handle.Transparency = 1
+                        
+                        local modelId = isGun and GUN_MODEL_ID or KNIFE_MODEL_ID
+                        if not tool:FindFirstChild("CustomModel") then
+                            local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. modelId)[1] end)
+                            if success and model then
+                                model.Name = "CustomModel"
+                                model.Parent = tool
+                                local modelRoot = model:IsA("Model") and model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") or model
+                                if modelRoot then
+                                    modelRoot.CFrame = handle.CFrame
+                                    modelRoot.CanCollide = false
+                                    modelRoot.Massless = true
+                                    local weld = Instance.new("WeldConstraint")
+                                    weld.Part0 = handle
+                                    weld.Part1 = modelRoot
+                                    weld.Parent = modelRoot
+                                    if model:IsA("Model") then model:PivotTo(handle.CFrame) end
+                                end
+                            end
+                        end
+                    end
+                else
+                    -- Возвращаем стандартную модель
+                    for _, part in pairs(tool:GetChildren()) do
+                        if part:IsA("BasePart") then part.Transparency = 0 end
+                        if part.Name == "CustomModel" then part:Destroy() end
+                    end
+                end
+            end
         end
     end
 end
@@ -537,7 +590,6 @@ local function removeESP(player)
     end
 end
 
--- НЕОНОВОЕ ESP
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -546,21 +598,19 @@ local function createESP(player)
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
-    -- Основной неоновый контур
     local hl = Instance.new("Highlight", char)
     hl.Adornee = char
     hl.FillColor = color
-    hl.FillTransparency = 1 -- Убираем заливку, оставляем только контур
+    hl.FillTransparency = 1
     hl.OutlineColor = color
     hl.OutlineTransparency = 0
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
 
-    -- Второй слой для эффекта "свечения" (толще)
     local hlGlow = Instance.new("Highlight", char)
     hlGlow.Adornee = char
     hlGlow.FillColor = color
-    hlGlow.FillTransparency = 0.7 -- Полупрозрачная заливка
+    hlGlow.FillTransparency = 0.7
     hlGlow.OutlineColor = color
     hlGlow.OutlineTransparency = 0.5
     hlGlow.DepthMode = Enum.HighlightDepthMode.Occluded
@@ -615,7 +665,6 @@ local function updateGunESP()
     end
 end
 
--- СТИЛЬНЫЕ КНОПКИ
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
