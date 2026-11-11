@@ -20,7 +20,7 @@ local function SaveConnection(conn)
     return conn
 end
 
-if PlayerGui:FindFirstChild("MM2_Neon_Hub") then PlayerGui["MM2_Neon_Hub"]:Destroy() end
+if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
 local Theme = { 
     Main = Color3.fromRGB(15, 15, 20), 
@@ -32,7 +32,7 @@ local Theme = {
 }
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MM2_Neon_Hub"
+ScreenGui.Name = "MM2_Purple_Hub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
@@ -116,7 +116,7 @@ Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0, 150, 1, 0)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "NEON HUB"
+Title.Text = "PURPLE HUB"
 Title.TextColor3 = Theme.Text
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -275,10 +275,10 @@ local connections = {}
 local aimbotFov = 300
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
-ColorCorrection.Name = "Neon_PurpleFilter"
-ColorCorrection.TintColor = Color3.fromRGB(180, 160, 255)
-ColorCorrection.Contrast = 0.1
-ColorCorrection.Saturation = -0.1
+ColorCorrection.Name = "PurpleFilter"
+ColorCorrection.TintColor = Color3.fromRGB(120, 0, 255)
+ColorCorrection.Contrast = 0.15
+ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
@@ -451,7 +451,6 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     else for p, _ in pairs(espObjects) do removeESP(p) end end 
 end)
 
--- ==================== СЛАЙДЕР FOV КАМЕРЫ (В MAIN) ====================
 local FovBgMain = Instance.new("Frame")
 FovBgMain.BackgroundColor3 = Theme.BtnOff
 FovBgMain.Size = UDim2.new(1, 0, 0, 30)
@@ -498,6 +497,8 @@ FilterBtn.MouseButton1Click:Connect(function()
     states.purple_filter = not states.purple_filter
     FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
     FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    FilterBtn2.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn2.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
     ColorCorrection.Enabled = states.purple_filter
 end)
 
@@ -526,6 +527,7 @@ StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "PURPLE FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
+    FilterBtn2.Text = "FILTER: OFF"; FilterBtn2.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
@@ -659,6 +661,25 @@ UserInputService.InputChanged:Connect(function(input)
         FovCircle.Size = UDim2.new(0, aimbotFov, 0, aimbotFov)
         FovCircle.Position = UDim2.new(0.5, -aimbotFov/2, 0.5, -aimbotFov/2)
     end
+end)
+
+local FilterBtn2 = Instance.new("TextButton")
+FilterBtn2.BackgroundColor3 = Theme.BtnOff
+FilterBtn2.Size = UDim2.new(1, 0, 0, 30)
+FilterBtn2.Font = Enum.Font.GothamBold
+FilterBtn2.Text = "FILTER: OFF"
+FilterBtn2.TextColor3 = Theme.Text
+FilterBtn2.TextSize = 11
+FilterBtn2.LayoutOrder = 6
+FilterBtn2.Parent = TargetTab
+Instance.new("UICorner", FilterBtn2).CornerRadius = UDim.new(0, 6)
+FilterBtn2.MouseButton1Click:Connect(function()
+    states.purple_filter = not states.purple_filter
+    FilterBtn2.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn2.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    ColorCorrection.Enabled = states.purple_filter
 end)
 
 UserInputService.InputBegan:Connect(function(input, gp)
