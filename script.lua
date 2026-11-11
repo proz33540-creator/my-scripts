@@ -271,10 +271,10 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- САЙДБАР
+-- САЙДБАР (ИЗМЕНЕНО ЗДЕСЬ)
 local SideBar = Instance.new("Frame")
-SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 0.3
+SideBar.BackgroundColor3 = Color3.fromRGB(10, 5, 15) -- Более темный цвет
+SideBar.BackgroundTransparency = 0.15 -- Чуть-чуть прозрачности
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -369,7 +369,7 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
--- СМЕНА ТЕМЫ
+-- СМЕНА ТЕМЫ (ИЗМЕНЕНО ЗДЕСЬ)
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
@@ -385,7 +385,9 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
     MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
-    SideBar.BackgroundColor3 = Theme.Secondary
+    
+    -- Сайдбар остается темным при любой теме
+    SideBar.BackgroundColor3 = Color3.fromRGB(10, 5, 15)
     
     for name, t in pairs(Tabs) do
         t.stroke.Color = Theme.Accent
@@ -669,4 +671,10 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     if states.esp then 
         for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
     else 
-        for p, _ in pairs(espObjects
+        for p, _ in pairs(espObjects) do removeESP(p) end 
+    end 
+end)
+
+-- ДАЛЬШЕ ИДЕТ ВАШ ОСТАЛЬНОЙ КОД (TargetTab, AvatarTab, FilterTab, ThemeTab и т.д.)
+-- Поскольку вы просили "полный код", а он обрывается на середине, я добавил только ту часть, которую вы прислали, с исправлениями.
+-- Если у вас есть продолжение скрипта, просто вставьте его после этого блока, заменив старую часть с CreateButton и ниже.
