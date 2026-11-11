@@ -9,7 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 136096996638435 -- Твоя картинка
+local UI_BACKGROUND_ID = 136096996638435
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -40,7 +40,7 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 999
 ScreenGui.Parent = PlayerGui
 
--- ОВЕРЛЕЙ FPS/PING
+-- ОВЕРЛЕЙ
 local OverlayFrame = Instance.new("Frame")
 OverlayFrame.BackgroundColor3 = Theme.Main
 OverlayFrame.BackgroundTransparency = 0.5
@@ -92,7 +92,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО
+-- ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
@@ -107,18 +107,16 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.3
 
--- ФОН
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0.3 -- Прозрачность фона (чем меньше, тем ярче картинка)
+BackgroundImage.ImageTransparency = 0.3
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 
--- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
 TopBar.BackgroundTransparency = 0.2
@@ -179,7 +177,6 @@ CloseBtn.ZIndex = 3
 CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 4)
 
--- МАЛЕНЬКИЙ КВАДРАТИК (СВЕРНУТОЕ ОКНО)
 local MinimizedFrame = Instance.new("TextButton")
 MinimizedFrame.BackgroundColor3 = Theme.Secondary
 MinimizedFrame.Size = UDim2.new(0, 50, 0, 50)
@@ -301,7 +298,8 @@ local TargetTab = CreateTab("Target", 2)
 local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
-local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
+-- ВСЁ ВКЛЮЧЕНО ПО УМОЛЧАНИЮ (true)
+local states = { esp = true, noclip = true, fly = true, autofarm = true, aimbot = true, hitbox = true, purple_filter = true, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
 local gunESPObjects = {}
@@ -316,7 +314,7 @@ ColorCorrection.Name = "PurpleFilter"
 ColorCorrection.TintColor = Color3.fromRGB(120, 0, 255)
 ColorCorrection.Contrast = 0.15
 ColorCorrection.Saturation = 0.1
-ColorCorrection.Enabled = false
+ColorCorrection.Enabled = true -- Включено
 ColorCorrection.Parent = Lighting
 
 local function toggleCustomSkin()
@@ -350,8 +348,6 @@ local function toggleCustomSkin()
                         end
                     end
                 end
-            else
-                warn("Не удалось загрузить модель скина. Проверь ID.")
             end
         end)
     else
@@ -541,6 +537,7 @@ local function updateGunESP()
 end
 
 local function CreateButton(parent, name, displayName, order, onClick)
+    -- По умолчанию ставим ON, так как в states стоит true
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
     btn.Size = UDim2.new(1, 0, 0, 30)
@@ -553,7 +550,6 @@ local function CreateButton(parent, name, displayName, order, onClick)
     btn.Parent = parent
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     
-    -- Красивые анимации при наведении и нажатии
     btn.MouseEnter:Connect(function() 
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 0, 120)}):Play()
         TweenService:Create(btn, TweenInfo.new(0.2), {Size = UDim2.new(1.02, 0, 0, 32)}):Play()
@@ -571,6 +567,36 @@ local function CreateButton(parent, name, displayName, order, onClick)
     end)
     return btn
 end
+
+-- ВЫЗЫВАЕМ ФУНКЦИИ СРАЗУ ПРИ ЗАПУСКЕ
+startFly()
+startNoclip()
+startAutoFarm()
+updateGunESP()
+-- Включаем Hitbox и Aimbot по умолчанию
+task.spawn(function() 
+    wait(1)
+    if states.hitbox then 
+        hitboxConnection = RunService.RenderStepped:Connect(function()
+            local char = LocalPlayer.Character
+            local knife = char and (char:FindFirstChild("Knife") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Knife")))
+            if knife and knife:FindFirstChild("Handle") then
+                local handle = knife.Handle
+                if handle and handle.Parent == char then
+                    local closestPlayer, minD = nil, 5000
+                    local myPos = char.HumanoidRootPart.Position
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local d = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
+                            if d < minD then minD = d; closestPlayer = p end
+                        end
+                    end
+                    if closestPlayer then handle.CFrame = CFrame.new(closestPlayer.Character.HumanoidRootPart.Position) else handle.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2) end
+                end
+            end
+        end)
+    end
+end)
 
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
@@ -645,7 +671,7 @@ StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false;
+    states.hitbox = false; 
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
@@ -654,7 +680,6 @@ StopBtn.MouseButton1Click:Connect(function()
     gunESPObjects = {}
 end)
 
--- ВКЛАДКА TARGET
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -791,12 +816,11 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- КНОПКА HITBOX EXPANDER
 local HitboxBtn = Instance.new("TextButton")
-HitboxBtn.BackgroundColor3 = Theme.BtnOff
+HitboxBtn.BackgroundColor3 = Theme.BtnOn
 HitboxBtn.Size = UDim2.new(1, 0, 0, 34)
 HitboxBtn.Font = Enum.Font.GothamBold
-HitboxBtn.Text = "HITBOX EXPANDER: OFF"
+HitboxBtn.Text = "HITBOX EXPANDER: ON"
 HitboxBtn.TextColor3 = Color3.new(1,1,1)
 HitboxBtn.TextSize = 12
 HitboxBtn.LayoutOrder = 6
@@ -838,12 +862,11 @@ HitboxBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- FILTER
 local FilterBtn = Instance.new("TextButton")
-FilterBtn.BackgroundColor3 = Theme.BtnOff
+FilterBtn.BackgroundColor3 = Theme.BtnOn
 FilterBtn.Size = UDim2.new(1, 0, 0, 30)
 FilterBtn.Font = Enum.Font.GothamBold
-FilterBtn.Text = "FILTER: OFF"
+FilterBtn.Text = "FILTER: ON"
 FilterBtn.TextColor3 = Theme.Text
 FilterBtn.TextSize = 11
 FilterBtn.LayoutOrder = 1
@@ -857,7 +880,6 @@ FilterBtn.MouseButton1Click:Connect(function()
     ColorCorrection.Enabled = states.purple_filter
 end)
 
--- АВАТАР
 local SkinBtn = Instance.new("TextButton")
 SkinBtn.BackgroundColor3 = Theme.BtnOff
 SkinBtn.Size = UDim2.new(1, 0, 0, 34)
