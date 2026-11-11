@@ -8,6 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+-- ID МОДЕЛЕЙ
 local CUSTOM_SKIN_ID = 124994246147928
 local UI_BACKGROUND_ID = 107174125347585
 local GUN_MODEL_ID = 78465406426440
@@ -98,7 +99,7 @@ FovStroke.Transparency = 0.5
 -- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 1 
+MainFrame.BackgroundTransparency = 0
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -111,21 +112,21 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.2
 
--- ФОН
+-- ФОН (ЧЕТКИЙ)
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0.2
+BackgroundImage.ImageTransparency = 0.05 -- Сделал почти непрозрачным
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
-TopBar.BackgroundTransparency = 0.3
+TopBar.BackgroundTransparency = 0.2
 TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.ZIndex = 2
 TopBar.Parent = MainFrame
@@ -268,7 +269,7 @@ end)
 -- САЙДБАР
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 0.4
+SideBar.BackgroundTransparency = 0.3
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -353,6 +354,7 @@ local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
 local customSkinModel = nil
+local weaponConnection = nil
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "PurpleFilter"
@@ -408,8 +410,8 @@ local function toggleCustomSkin()
     end
 end
 
--- КАСТОМНОЕ ОРУЖИЕ
-local function applyCustomWeapons()
+local function applyWeaponSkin()
+    if not states.custom_weapons then return end
     local char = LocalPlayer.Character
     if not char then return end
 
@@ -418,41 +420,32 @@ local function applyCustomWeapons()
             local isGun = tool.Name:lower():find("gun") or tool.Name:lower():find("revolver")
             local isKnife = tool.Name:lower():find("knife")
             
-            if (isGun and GUN_MODEL_ID ~= 0) or (isKnife and KNIFE_MODEL_ID ~= 0) then
-                if states.custom_weapons then
-                    local handle = tool:FindFirstChild("Handle")
-                    if handle then
-                        -- Прячем стандартную модель
-                        for _, part in pairs(tool:GetChildren()) do
-                            if part:IsA("BasePart") and part ~= handle then part.Transparency = 1 end
-                        end
-                        handle.Transparency = 1
-                        
-                        local modelId = isGun and GUN_MODEL_ID or KNIFE_MODEL_ID
-                        if not tool:FindFirstChild("CustomModel") then
-                            local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. modelId)[1] end)
-                            if success and model then
-                                model.Name = "CustomModel"
-                                model.Parent = tool
-                                local modelRoot = model:IsA("Model") and model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") or model
-                                if modelRoot then
-                                    modelRoot.CFrame = handle.CFrame
-                                    modelRoot.CanCollide = false
-                                    modelRoot.Massless = true
-                                    local weld = Instance.new("WeldConstraint")
-                                    weld.Part0 = handle
-                                    weld.Part1 = modelRoot
-                                    weld.Parent = modelRoot
-                                    if model:IsA("Model") then model:PivotTo(handle.CFrame) end
-                                end
+            local modelId = isGun and GUN_MODEL_ID or (isKnife and KNIFE_MODEL_ID or 0)
+            if modelId ~= 0 then
+                local handle = tool:FindFirstChild("Handle")
+                if handle then
+                    for _, part in pairs(tool:GetChildren()) do
+                        if part:IsA("BasePart") and part ~= handle then part.Transparency = 1 end
+                    end
+                    handle.Transparency = 1
+                    
+                    if not tool:FindFirstChild("CustomModel") then
+                        local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. modelId)[1] end)
+                        if success and model then
+                            model.Name = "CustomModel"
+                            model.Parent = tool
+                            local modelRoot = model:IsA("Model") and model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") or model
+                            if modelRoot then
+                                modelRoot.CFrame = handle.CFrame
+                                modelRoot.CanCollide = false
+                                modelRoot.Massless = true
+                                local weld = Instance.new("WeldConstraint")
+                                weld.Part0 = handle
+                                weld.Part1 = modelRoot
+                                weld.Parent = modelRoot
+                                if model:IsA("Model") then model:PivotTo(handle.CFrame) end
                             end
                         end
-                    end
-                else
-                    -- Возвращаем стандартную модель
-                    for _, part in pairs(tool:GetChildren()) do
-                        if part:IsA("BasePart") then part.Transparency = 0 end
-                        if part.Name == "CustomModel" then part:Destroy() end
                     end
                 end
             end
@@ -779,7 +772,7 @@ StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false; 
+    states.hitbox = false; states.custom_weapons = false; states.custom_skin = false;
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
@@ -987,32 +980,18 @@ FilterBtn.MouseButton1Click:Connect(function()
     ColorCorrection.Enabled = states.purple_filter
 end)
 
-local SkinBtn = Instance.new("TextButton")
-SkinBtn.BackgroundColor3 = Theme.BtnOff
-SkinBtn.Size = UDim2.new(1, 0, 0, 36)
-SkinBtn.Font = Enum.Font.GothamBold
-SkinBtn.Text = "CUSTOM SKIN: OFF"
-SkinBtn.TextColor3 = Theme.Text
-SkinBtn.TextSize = 12
-SkinBtn.LayoutOrder = 1
-SkinBtn.ZIndex = 4
-SkinBtn.Parent = AvatarTab
-Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 8)
-SkinBtn.MouseButton1Click:Connect(function()
-    states.custom_skin = not states.custom_skin
-    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
-    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
-    toggleCustomSkin()
-end)
+-- АВАТАР
+CreateButton(AvatarTab, "custom_skin", "CUSTOM SKIN", 1, function() toggleCustomSkin() end)
+CreateButton(AvatarTab, "custom_weapons", "CUSTOM WEAPONS", 2, function() applyWeaponSkin() end)
 
 local SkinInfo = Instance.new("TextLabel")
 SkinInfo.BackgroundTransparency = 1
 SkinInfo.Size = UDim2.new(1, 0, 0, 30)
 SkinInfo.Font = Enum.Font.GothamBold
-SkinInfo.Text = "Your custom model will appear here."
+SkinInfo.Text = "Модели применятся после экипировки."
 SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
 SkinInfo.TextSize = 11
-SkinInfo.LayoutOrder = 2
+SkinInfo.LayoutOrder = 3
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
@@ -1040,6 +1019,7 @@ task.spawn(function()
                 end
             end
         end
+        if states.custom_weapons then applyWeaponSkin() end
     end
 end)
 
