@@ -343,9 +343,10 @@ local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
+local states = { esp = false, skeleton = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
+local skeletonDrawings = {}
 local gunESPObjects = {}
 local selectedTarget = nil
 local connections = {}
@@ -536,59 +537,42 @@ local function removeESP(player)
     end
 end
 
--- 3D БОКСЫ И ПОЛОСКА ЗДОРОВЬЯ
+-- БОКСЫ И СКЕЛЕТ
 local function createESP(player)
-    if not states.esp then return end
+    if not states.esp and not states.skeleton then return end
     removeESP(player)
     local char = player.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChild("Head") then return end
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
-    -- Основной Highlight
-    local hl = Instance.new("Highlight", char)
-    hl.Adornee = char
-    hl.FillColor = color
-    hl.FillTransparency = 1
-    hl.OutlineColor = color
-    hl.OutlineTransparency = 0
-    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    table.insert(espObjects[player], hl)
+    -- Свечение
+    if states.esp then
+        local hl = Instance.new("Highlight", char)
+        hl.Adornee = char
+        hl.FillColor = color
+        hl.FillTransparency = 1
+        hl.OutlineColor = color
+        hl.OutlineTransparency = 0
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        table.insert(espObjects[player], hl)
 
-    -- 3D Бокс вокруг всего тела
-    local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
-    if torso then
-        local box = Instance.new("BoxHandleAdornment")
-        box.Adornee = torso
-        box.Size = torso.Size + Vector3.new(0.5, 0.5, 0.5)
-        box.Color3 = color
-        box.Transparency = 0.8
-        box.AlwaysOnTop = true
-        box.ZIndex = 5
-        box.Parent = torso
-        table.insert(espObjects[player], box)
-    end
-
-    -- Полоска здоровья и имя
-    if player ~= LocalPlayer then
         local bb = Instance.new("BillboardGui", char.Head)
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 100, 0, 40)
-        bb.ExtentsOffset = Vector3.new(0, 3, 0)
+        bb.Size = UDim2.new(4, 0, 6, 0)
+        bb.ExtentsOffset = Vector3.new(0, 0, 0)
 
-        local healthBarBg = Instance.new("Frame", bb)
-        healthBarBg.Size = UDim2.new(1, 0, 0, 6)
-        healthBarBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        healthBarBg.BorderSizePixel = 0
-
-        local healthBar = Instance.new("Frame", healthBarBg)
-        healthBar.Size = UDim2.new(1, 0, 1, 0)
-        healthBar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-        healthBar.BorderSizePixel = 0
-
+        local frame = Instance.new("Frame", bb)
+        frame.BackgroundTransparency = 1
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        
+        local stroke = Instance.new("UIStroke", frame)
+        stroke.Color = color
+        stroke.Thickness = 1.5
+        
         local lbl = Instance.new("TextLabel", bb)
-        lbl.Size = UDim2.new(1, 0, 1, 0)
-        lbl.Position = UDim2.new(0, 0, 1, 2)
+        lbl.Size = UDim2.new(1, 0, 0.1, 0)
+        lbl.Position = UDim2.new(0, 0, 1, 0)
         lbl.BackgroundTransparency = 1
         lbl.Text = player.Name
         lbl.TextColor3 = color
@@ -598,6 +582,45 @@ local function createESP(player)
         lbl.TextStrokeColor3 = Color3.new(0,0,0)
         
         table.insert(espObjects[player], bb)
+    end
+
+    -- Скелет (Skeleton)
+    if states.skeleton then
+        local skeletonGui = Instance.new("BillboardGui", char.Head)
+        skeletonGui.AlwaysOnTop = true
+        skeletonGui.Size = UDim2.new(0, 0, 0, 0)
+        
+        local function drawLine(startPos, endPos)
+            local distance = (startPos - endPos).Magnitude
+            local center = (startPos + endPos) / 2
+            
+            local part = Instance.new("Part")
+            part.Anchored = true
+            part.CanCollide = false
+            part.Transparency = 0
+            part.Color = color
+            part.Material = Enum.Material.Neon
+            part.Size = Vector3.new(0.05, distance, 0.05)
+            part.CFrame = CFrame.new(center, endPos) * CFrame.Angles(math.rad(90), 0, 0)
+            part.Parent = char
+            
+            table.insert(espObjects[player], part)
+        end
+        
+        local head = char:FindFirstChild("Head")
+        local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
+        local lArm = char:FindFirstChild("LeftUpperArm") or char:FindFirstChild("Left Arm")
+        local rArm = char:FindFirstChild("RightUpperArm") or char:FindFirstChild("Right Arm")
+        local lLeg = char:FindFirstChild("LeftUpperLeg") or char:FindFirstChild("Left Leg")
+        local rLeg = char:FindFirstChild("RightUpperLeg") or char:FindFirstChild("Right Leg")
+        
+        if head and torso then drawLine(head.Position, torso.Position) end
+        if torso and lArm then drawLine(torso.Position, lArm.Position) end
+        if torso and rArm then drawLine(torso.Position, rArm.Position) end
+        if torso and lLeg then drawLine(torso.Position, lLeg.Position) end
+        if torso and rLeg then drawLine(torso.Position, rLeg.Position) end
+        
+        table.insert(espObjects[player], skeletonGui)
     end
 end
 
@@ -670,7 +693,7 @@ end
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
 CreateButton(MainTab, "autofarm", "AUTO FARM (SMOOTH)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
-CreateButton(MainTab, "esp", "ESP PLAYERS & GUNS", 4, function() 
+CreateButton(MainTab, "esp", "ESP BOX & GLOW", 4, function() 
     if states.esp then 
         for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
         updateGunESP()
@@ -681,10 +704,18 @@ CreateButton(MainTab, "esp", "ESP PLAYERS & GUNS", 4, function()
     end 
 end)
 
+CreateButton(MainTab, "skeleton", "SKELETON", 5, function()
+    if states.skeleton then
+        for _, p in pairs(Players:GetPlayers()) do createESP(p) end
+    else
+        for p, _ in pairs(espObjects) do removeESP(p) end
+    end
+end)
+
 local FovBgMain = Instance.new("Frame")
 FovBgMain.BackgroundColor3 = Theme.BtnOff
 FovBgMain.Size = UDim2.new(1, 0, 0, 34)
-FovBgMain.LayoutOrder = 5
+FovBgMain.LayoutOrder = 6
 FovBgMain.ZIndex = 4
 FovBgMain.Parent = MainTab
 Instance.new("UICorner", FovBgMain).CornerRadius = UDim.new(0, 8)
@@ -726,7 +757,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 12
-GrabGunBtn.LayoutOrder = 6
+GrabGunBtn.LayoutOrder = 7
 GrabGunBtn.ZIndex = 4
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 8)
@@ -738,12 +769,12 @@ StopBtn.Size = UDim2.new(1, 0, 0, 36)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 7
+StopBtn.LayoutOrder = 8
 StopBtn.ZIndex = 4
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 StopBtn.MouseButton1Click:Connect(function()
-    stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
+    stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.skeleton = false; states.autofarm = false; states.aimbot = false;
     states.hitbox = false; 
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
@@ -981,7 +1012,7 @@ Tabs["Main"].frame.Visible = true
 
 task.spawn(function()
     while task.wait(1) do
-        if states.esp then
+        if states.esp or states.skeleton then
             for _, p in pairs(Players:GetPlayers()) do
                 if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                     if not espObjects[p] then createESP(p) end
