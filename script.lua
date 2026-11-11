@@ -37,8 +37,8 @@ local Theme = {
     Text = Color3.fromRGB(255, 255, 255), 
     BtnOff = Color3.fromRGB(35, 20, 50), 
     BtnOn = Color3.fromRGB(120, 0, 200),
-    ActiveTab = Color3.fromRGB(50, 50, 60), -- Серый
-    TextColor = Color3.fromRGB(255, 255, 255)
+    TextColor = Color3.fromRGB(255, 255, 255),
+    ActiveTextColor = Color3.fromRGB(255, 255, 255) -- Цвет текста на активной кнопке
 }
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -334,12 +334,12 @@ local function CreateTab(name, order)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
-            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0.4}):Play()
+            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0.4, TextColor3 = Theme.TextColor}):Play()
             TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.6}):Play()
             t.frame.Visible = false
         end
-        -- ВСЕГДА СЕРЫЙ ЦВЕТ ДЛЯ АКТИВНОЙ
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.ActiveTab, BackgroundTransparency = 0}):Play()
+        -- Красим в цвет темы и меняем текст на контрастный
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOn, BackgroundTransparency = 0, TextColor3 = Theme.ActiveTextColor}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
         frame.Visible = true
     end)
@@ -371,12 +371,13 @@ ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
 -- СМЕНА ТЕМЫ
-local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor)
+local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
     Theme.BtnOn = btnOn
     Theme.TextColor = textColor or Color3.fromRGB(255, 255, 255)
+    Theme.ActiveTextColor = activeTextColor or Color3.fromRGB(255, 255, 255)
     
     ColorCorrection.TintColor = accentColor
     
@@ -391,7 +392,8 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor)
         t.stroke.Color = Theme.Accent
         t.btn.TextColor3 = Theme.TextColor
         if t.frame.Visible then
-            t.btn.BackgroundColor3 = Theme.ActiveTab -- Серый для активной
+            t.btn.BackgroundColor3 = Theme.BtnOn
+            t.btn.TextColor3 = Theme.ActiveTextColor
         else
             t.btn.BackgroundColor3 = Theme.BtnOff
         end
@@ -629,7 +631,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
     btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
-    btn.TextColor3 = Theme.TextColor
+    btn.TextColor3 = states[name] and Theme.ActiveTextColor or Theme.TextColor
     btn.TextSize = 12
     btn.LayoutOrder = order
     btn.ZIndex = 4
@@ -654,6 +656,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
         states[name] = not states[name]
         btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
         btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
+        btn.TextColor3 = states[name] and Theme.ActiveTextColor or Theme.TextColor
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = states[name] and 0 or 0.8}):Play()
         onClick()
     end)
@@ -981,7 +984,7 @@ SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
 -- ТЕМА (ФОНЫ)
-local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, order)
+local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
     btn.BackgroundTransparency = 0.4
@@ -1004,13 +1007,13 @@ local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, 
     btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
     
     btn.MouseButton1Click:Connect(function()
-        changeTheme(bgId, accent, accentDark, btnOn, textColor)
+        changeTheme(bgId, accent, accentDark, btnOn, textColor, activeTextColor)
     end)
 end
 
-CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1)
-CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), 2)
-CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), Color3.fromRGB(255, 255, 255), 3)
+CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
+CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
@@ -1022,7 +1025,8 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
-Tabs["Main"].btn.BackgroundColor3 = Theme.ActiveTab -- Серый для активной
+Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
+Tabs["Main"].btn.TextColor3 = Theme.ActiveTextColor
 Tabs["Main"].frame.Visible = true
 
 task.spawn(function()
