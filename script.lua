@@ -535,7 +535,7 @@ local function removeESP(player)
     end
 end
 
--- ЗАКРАШЕННЫЕ ИГРОКИ С ОБВОДКОЙ (ТОЛЬКО ИГРОКИ)
+-- ТОЛЬКО ИГРОКИ (СВЕЧЕНИЕ + ОБВОДКА)
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
