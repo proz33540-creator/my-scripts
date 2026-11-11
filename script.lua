@@ -92,7 +92,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОКНО (С ФОНОМ)
+-- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.BackgroundTransparency = 1 
@@ -222,6 +222,43 @@ CloseBtn.MouseButton1Click:Connect(function()
         end
     end
     ScreenGui:Destroy()
+end)
+
+-- РАСТЯГИВАНИЕ ОКНА (Уголок в правом нижнем углу)
+local ResizeBtn = Instance.new("TextButton")
+ResizeBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 60)
+ResizeBtn.Position = UDim2.new(1, -20, 1, -20)
+ResizeBtn.Size = UDim2.new(0, 15, 0, 15)
+ResizeBtn.Text = ""
+ResizeBtn.ZIndex = 10
+ResizeBtn.Parent = MainFrame
+Instance.new("UICorner", ResizeBtn).CornerRadius = UDim.new(0, 4)
+
+local isResizing = false
+local startSize = nil
+local startMousePos = nil
+
+ResizeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isResizing = true
+        startSize = MainFrame.AbsoluteSize
+        startMousePos = input.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if isResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local mouseDelta = input.Position - startMousePos
+        local newWidth = math.clamp(startSize.X + mouseDelta.X, 300, 800)
+        local newHeight = math.clamp(startSize.Y + mouseDelta.Y, 250, 600)
+        MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isResizing = false
+    end
 end)
 
 -- ВКЛАДКИ
