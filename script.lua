@@ -93,7 +93,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО
+-- ОСНОВНОЕ ОКНО (С ЗАКРУГЛЕННЫМИ УГЛАМИ)
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.BackgroundTransparency = 1 
@@ -101,7 +101,7 @@ MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
 MainFrame.Draggable = true
-MainFrame.ClipsDescendants = true
+MainFrame.ClipsDescendants = true -- ВОТ ЭТО ОБРЕЗАЕТ КАРТИНКУ ПО УГЛАМ
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 local UIStroke = Instance.new("UIStroke", MainFrame)
