@@ -263,7 +263,7 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- САЙДБАР И ВКЛАДКИ
+-- САЙДБАР
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
 SideBar.BackgroundTransparency = 0.4
@@ -289,6 +289,7 @@ ContentFrame.Size = UDim2.new(1, -120, 1, -45)
 ContentFrame.ZIndex = 3
 ContentFrame.Parent = MainFrame
 
+-- СИСТЕМА ВКЛАДОК С АДАПТИВНЫМИ КНОПКАМИ
 local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
@@ -313,6 +314,7 @@ local function CreateTab(name, order)
     frame.Size = UDim2.new(1, -15, 1, -15)
     frame.Position = UDim2.new(0, 5, 0, 5)
     frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    frame.AutomaticCanvasSize = Enum.AutomaticSize.Y -- ВАЖНО ДЛЯ РАСТЯГИВАНИЯ
     frame.ScrollBarThickness = 3
     frame.ScrollBarImageColor3 = Theme.Accent
     frame.Visible = false
@@ -333,11 +335,6 @@ local function CreateTab(name, order)
         frame.Visible = true
     end)
     
-    frame.ChildAdded:Connect(function()
-        task.wait()
-        local layout = frame:FindFirstChildOfClass("UIListLayout")
-        if layout then frame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10) end
-    end)
     return frame
 end
 
@@ -583,11 +580,11 @@ local function updateGunESP()
     end
 end
 
--- СТИЛЬНЫЕ КНОПКИ
+-- АДАПТИВНЫЕ КНОПКИ
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
-    btn.Size = UDim2.new(1, 0, 0, 34)
+    btn.Size = UDim2.new(1, 0, 0, 34) -- Ширина 100%, высота 34
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
     btn.TextColor3 = Theme.Text
@@ -605,12 +602,10 @@ local function CreateButton(parent, name, displayName, order, onClick)
     btn.MouseEnter:Connect(function() 
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(110, 0, 170)}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
-        TweenService:Create(btn, TweenInfo.new(0.2), {Size = UDim2.new(1.03, 0, 0, 36)}):Play()
     end)
     btn.MouseLeave:Connect(function() 
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = states[name] and 0 or 0.8}):Play()
-        TweenService:Create(btn, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 34)}):Play()
     end)
     
     btn.MouseButton1Click:Connect(function()
