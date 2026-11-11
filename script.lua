@@ -35,7 +35,7 @@ local Theme = {
     Accent = Color3.fromRGB(170, 0, 255), 
     AccentDark = Color3.fromRGB(100, 0, 160),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(0, 0, 0),
+    BtnOff = Color3.fromRGB(0, 0, 0), -- Чистый черный
     BtnOn = Color3.fromRGB(120, 0, 200),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
@@ -271,10 +271,10 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- САЙДБАР (темный)
+-- САЙДБАР
 local SideBar = Instance.new("Frame")
-SideBar.BackgroundColor3 = Color3.fromRGB(10, 5, 15)
-SideBar.BackgroundTransparency = 0.15
+SideBar.BackgroundColor3 = Theme.Secondary
+SideBar.BackgroundTransparency = 0.3
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -301,7 +301,7 @@ local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
-    btn.BackgroundTransparency = 0
+    btn.BackgroundTransparency = 0 -- БЕЗ ПРОЗРАЧНОСТИ (чистый черный)
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
@@ -385,7 +385,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
     MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
-    SideBar.BackgroundColor3 = Color3.fromRGB(10, 5, 15)
+    SideBar.BackgroundColor3 = Theme.Secondary
     
     for name, t in pairs(Tabs) do
         t.stroke.Color = Theme.Accent
@@ -623,11 +623,10 @@ local function createESP(player)
     end
 end
 
--- ИЗМЕНЕННАЯ ФУНКЦИЯ CreateButton (добавлен параметр transparency)
-local function CreateButton(parent, name, displayName, order, onClick, transparency)
+local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
-    btn.BackgroundTransparency = transparency or 0
+    btn.BackgroundTransparency = 0
     btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
@@ -648,7 +647,7 @@ local function CreateButton(parent, name, displayName, order, onClick, transpare
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
     end)
     btn.MouseLeave:Connect(function() 
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff, BackgroundTransparency = transparency or 0}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff, BackgroundTransparency = 0}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = states[name] and 0 or 0.8}):Play()
     end)
     
@@ -663,7 +662,6 @@ local function CreateButton(parent, name, displayName, order, onClick, transpare
     return btn
 end
 
--- КНОПКИ MAIN (без прозрачности)
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
 CreateButton(MainTab, "autofarm", "AUTO FARM (SMOOTH)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
@@ -671,21 +669,4 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     if states.esp then 
         for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
     else 
-        for p, _ in pairs(espObjects) do removeESP(p) end 
-    end 
-end)
-
--- КНОПКИ THEME (с прозрачностью 0.3)
-CreateButton(ThemeTab, "theme_orange", "ORANGE THEME", 1, function() 
-    changeTheme(BG_ORANGE, Color3.fromRGB(255, 140, 0), Color3.fromRGB(180, 80, 0), Color3.fromRGB(255, 120, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)) 
-end, 0.3)
-
-CreateButton(ThemeTab, "theme_sakura", "SAKURA THEME", 2, function() 
-    changeTheme(BG_SAKURA, Color3.fromRGB(255, 120, 170), Color3.fromRGB(180, 80, 120), Color3.fromRGB(255, 100, 150), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)) 
-end, 0.3)
-
-CreateButton(ThemeTab, "theme_default", "DEFAULT THEME", 3, function() 
-    changeTheme(BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)) 
-end, 0.3)
-
--- Остальные вкладки (Target, Avatar, Filter) можно оставить пустыми или добавить свои функции
+        for p, _ in pairs(espObjects
