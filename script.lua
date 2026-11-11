@@ -8,8 +8,8 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ВПИСАН ТВОЙ ID МОДЕЛИ
-local CUSTOM_SKIN_ID = 133992987200504
+-- ТВОЙ ID МОДЕЛИ
+local CUSTOM_SKIN_ID = 124994246147928
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -289,6 +289,7 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
+-- ЗАГРУЗКА СКИНА С ЗАПАСНЫМ ВАРИАНТОМ
 local function toggleCustomSkin()
     local char = LocalPlayer.Character
     if not char then return end
@@ -310,7 +311,11 @@ local function toggleCustomSkin()
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    if customSkinModel:IsA("Model") then customSkinModel:PivotTo(hrp.CFrame) else customSkinModel.CFrame = hrp.CFrame end
+                    if customSkinModel:IsA("Model") then 
+                        customSkinModel:PivotTo(hrp.CFrame) 
+                    else 
+                        customSkinModel.CFrame = hrp.CFrame 
+                    end
                     customSkinModel.Parent = char
                     for _, part in pairs(customSkinModel:GetDescendants()) do
                         if part:IsA("BasePart") then
@@ -324,7 +329,27 @@ local function toggleCustomSkin()
                     end
                 end
             else
-                warn("Не удалось загрузить модель скина. Проверь ID.")
+                -- Если модель не единая, грузим как MeshPart
+                local successMesh, meshPart = pcall(function()
+                    local mp = Instance.new("MeshPart")
+                    mp.MeshId = "rbxassetid://" .. CUSTOM_SKIN_ID
+                    mp.Size = Vector3.new(4, 4, 4)
+                    return mp
+                end)
+                if successMesh and meshPart then
+                    customSkinModel = meshPart
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        meshPart.CFrame = hrp.CFrame
+                        meshPart.Parent = char
+                        local weld = Instance.new("WeldConstraint")
+                        weld.Part0 = hrp
+                        weld.Part1 = meshPart
+                        weld.Parent = meshPart
+                    end
+                else
+                    warn("Не удалось загрузить модель скина. Проверь ID.")
+                end
             end
         end)
     else
@@ -653,7 +678,6 @@ StopBtn.MouseButton1Click:Connect(function()
     gunESPObjects = {}
 end)
 
--- АВАТАР ВКЛАДКА
 local SkinBtn = Instance.new("TextButton")
 SkinBtn.BackgroundColor3 = Theme.BtnOff
 SkinBtn.Size = UDim2.new(1, 0, 0, 34)
@@ -681,7 +705,6 @@ SkinInfo.TextSize = 11
 SkinInfo.LayoutOrder = 2
 SkinInfo.Parent = AvatarTab
 
--- ОСТАЛЬНОЙ КОД (Target, Filter)
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
