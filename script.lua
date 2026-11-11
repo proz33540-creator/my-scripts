@@ -41,6 +41,9 @@ local Theme = {
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
 
+-- Хранилище всех созданных кнопок для обновления темы
+local AllButtons = {}
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MM2_Purple_Hub"
 ScreenGui.ResetOnSpawn = false
@@ -331,6 +334,7 @@ local function CreateTab(name, order)
     Instance.new("UIListLayout", frame).Padding = UDim.new(0, 8)
     
     Tabs[name] = {btn = btn, frame = frame, stroke = stroke}
+    table.insert(AllButtons, {btn = btn, stroke = stroke, isTab = true})
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
@@ -369,6 +373,43 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
+-- ФУНКЦИЯ ПРИМЕНЕНИЯ ТЕМЫ КО ВСЕМ КНОПКАМ
+local function ApplyThemeToAll()
+    for _, item in ipairs(AllButtons) do
+        if item.btn and item.btn.Parent then
+            if item.isTab then
+                if item.btn.BackgroundColor3 == Theme.BtnOn then
+                    item.btn.BackgroundColor3 = Theme.BtnOn
+                    item.stroke.Color = Theme.Accent
+                else
+                    item.btn.BackgroundColor3 = Theme.BtnOff
+                    item.stroke.Color = Theme.Accent
+                end
+                item.btn.TextColor3 = Theme.TextColor
+            else
+                -- Обычные кнопки
+                if item.btn.Text:find("ON") then
+                    item.btn.BackgroundColor3 = Theme.BtnOn
+                else
+                    item.btn.BackgroundColor3 = Theme.BtnOff
+                end
+                item.btn.TextColor3 = Theme.TextColor
+                if item.stroke then item.stroke.Color = Theme.Accent end
+            end
+        end
+    end
+    
+    -- Обновляем обводки у фреймов (слайдеры)
+    for _, v in pairs(MainFrame:GetDescendants()) do
+        if v:IsA("UIStroke") then
+            v.Color = Theme.Accent
+        end
+        if v:IsA("TextButton") and v.BackgroundColor3 == Color3.fromRGB(255, 120, 0) then
+            v.BackgroundColor3 = Theme.Accent
+        end
+    end
+end
+
 -- СМЕНА ТЕМЫ
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
@@ -387,27 +428,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     SideBar.BackgroundColor3 = Theme.Secondary
     
-    for name, t in pairs(Tabs) do
-        t.stroke.Color = Theme.Accent
-        t.btn.TextColor3 = Theme.TextColor
-        if t.frame.Visible then
-            t.btn.BackgroundColor3 = Theme.BtnOn
-            t.btn.TextColor3 = Theme.ActiveTextColor
-        else
-            t.btn.BackgroundColor3 = Theme.BtnOff -- Черный/темный
-        end
-    end
-    
-    for _, v in pairs(MainFrame:GetDescendants()) do
-        if v:IsA("TextButton") or v:IsA("Frame") then
-            if v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(255,140,0) or v.BackgroundColor3 == Color3.fromRGB(255,120,170) then
-                 v.BackgroundColor3 = Theme.BtnOn
-            end
-            if v:IsA("TextLabel") or v:IsA("TextButton") then v.TextColor3 = Theme.TextColor end
-            local stroke = v:FindFirstChildOfClass("UIStroke")
-            if stroke then stroke.Color = Theme.Accent end
-        end
-    end
+    ApplyThemeToAll()
 end
 
 local function toggleCustomSkin()
@@ -642,6 +663,8 @@ local function CreateButton(parent, name, displayName, order, onClick)
     stroke.Thickness = 1
     stroke.Transparency = states[name] and 0 or 0.8
     
+    table.insert(AllButtons, {btn = btn, stroke = stroke, isTab = false})
+    
     btn.MouseEnter:Connect(function() 
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(110, 0, 170), BackgroundTransparency = 0.2}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
@@ -685,6 +708,7 @@ local FovBgStroke = Instance.new("UIStroke", FovBgMain)
 FovBgStroke.Color = Theme.Accent
 FovBgStroke.Thickness = 1
 FovBgStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = FovBgMain, stroke = FovBgStroke, isTab = false})
 
 local FovSliderMain = Instance.new("TextButton")
 FovSliderMain.BackgroundColor3 = Theme.Accent
@@ -724,6 +748,7 @@ GrabGunBtn.LayoutOrder = 6
 GrabGunBtn.ZIndex = 4
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = GrabGunBtn, stroke = nil, isTab = false})
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
 
 local StopBtn = Instance.new("TextButton")
@@ -737,6 +762,7 @@ StopBtn.LayoutOrder = 7
 StopBtn.ZIndex = 4
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = StopBtn, stroke = nil, isTab = false})
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
     states.hitbox = false; 
@@ -757,6 +783,7 @@ SelectTargetBtn.LayoutOrder = 1;
 SelectTargetBtn.ZIndex = 4
 SelectTargetBtn.Parent = TargetTab
 Instance.new("UICorner", SelectTargetBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SelectTargetBtn, stroke = nil, isTab = false})
 
 local PlayerListScroll = Instance.new("ScrollingFrame")
 PlayerListScroll.BackgroundColor3 = Theme.BtnOff
@@ -812,6 +839,7 @@ end)
 
 local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.BackgroundTransparency = 0.4; TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Theme.TextColor; TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
 Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = TpToTargetBtn, stroke = nil, isTab = false})
 TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
 
 CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 4, function() 
@@ -862,6 +890,7 @@ local AimFovStroke = Instance.new("UIStroke", AimFovBg)
 AimFovStroke.Color = Theme.Accent
 AimFovStroke.Thickness = 1
 AimFovStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = AimFovBg, stroke = AimFovStroke, isTab = false})
 
 local AimFovSlider = Instance.new("TextButton"); 
 AimFovSlider.BackgroundColor3 = Theme.Accent; 
@@ -902,6 +931,7 @@ HitboxBtn.LayoutOrder = 6
 HitboxBtn.ZIndex = 4
 HitboxBtn.Parent = TargetTab
 Instance.new("UICorner", HitboxBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = HitboxBtn, stroke = nil, isTab = false})
 
 HitboxBtn.MouseButton1Click:Connect(function()
     states.hitbox = not states.hitbox
@@ -944,6 +974,7 @@ FilterBtn.LayoutOrder = 1
 FilterBtn.ZIndex = 4
 FilterBtn.Parent = FilterTab
 Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = FilterBtn, stroke = nil, isTab = false})
 FilterBtn.MouseButton1Click:Connect(function()
     states.purple_filter = not states.purple_filter
     FilterBtn.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
@@ -964,6 +995,7 @@ SkinBtn.LayoutOrder = 1
 SkinBtn.ZIndex = 4
 SkinBtn.Parent = AvatarTab
 Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SkinBtn, stroke = nil, isTab = false})
 SkinBtn.MouseButton1Click:Connect(function()
     states.custom_skin = not states.custom_skin
     SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
@@ -982,7 +1014,7 @@ SkinInfo.LayoutOrder = 2
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
--- ТЕМА (ФОНЫ)
+-- ТЕМА (ФОНЫ) - С ПРОЗРАЧНОСТЬЮ 0.4
 local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
@@ -1001,6 +1033,8 @@ local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, 
     stroke.Color = Theme.Accent
     stroke.Thickness = 1
     stroke.Transparency = 0.8
+    
+    table.insert(AllButtons, {btn = btn, stroke = stroke, isTab = false})
     
     btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play() end)
     btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
