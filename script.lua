@@ -346,7 +346,6 @@ local FilterTab = CreateTab("Filter Screen", 4)
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
-local gunESPObjects = {}
 local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
@@ -536,7 +535,7 @@ local function removeESP(player)
     end
 end
 
--- ЗАКРАШЕННЫЕ ИГРОКИ С ОБВОДКОЙ (СКВОЗЬ СТЕНЫ)
+-- ЗАКРАШЕННЫЕ ИГРОКИ С ОБВОДКОЙ (ТОЛЬКО ИГРОКИ)
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -571,35 +570,6 @@ local function createESP(player)
         lbl.TextStrokeColor3 = Color3.new(0,0,0)
         
         table.insert(espObjects[player], bb)
-    end
-end
-
-local function updateGunESP()
-    if not states.esp then
-        for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
-        gunESPObjects = {}; return
-    end
-    local activeGuns = {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        local name = string.lower(obj.Name)
-        if (name:find("gun") or name:find("revolver") or name:find("sheriff")) and (obj:IsA("Tool") or obj:IsA("Model") or obj:IsA("BasePart")) then
-            local rootPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
-            if rootPart and not obj:IsDescendantOf(LocalPlayer.Character) then
-                activeGuns[obj] = true
-                if not gunESPObjects[obj] then
-                    local hl = Instance.new("Highlight"); hl.Adornee = obj; hl.FillColor = Color3.fromRGB(255, 255, 0); hl.FillTransparency = 0.5; hl.OutlineColor = Color3.fromRGB(255, 255, 0); hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = obj
-                    local bb = Instance.new("BillboardGui"); bb.Adornee = rootPart; bb.AlwaysOnTop = true; bb.Size = UDim2.new(0, 200, 0, 50); bb.ExtentsOffset = Vector3.new(0, 1, 0); bb.Parent = obj
-                    local text = Instance.new("TextLabel"); text.Size = UDim2.new(1, 0, 1, 0); text.BackgroundTransparency = 1; text.Text = "GUN"; text.TextColor3 = Color3.fromRGB(255, 255, 0); text.Font = Enum.Font.GothamBold; text.TextSize = 14; text.Parent = bb
-                    gunESPObjects[obj] = {hl, bb}
-                end
-            end
-        end
-    end
-    for obj, tbl in pairs(gunESPObjects) do
-        if not activeGuns[obj] or not obj or not obj.Parent then
-            for _, v in pairs(tbl) do if v and v.Parent then v:Destroy() end end
-            gunESPObjects[obj] = nil
-        end
     end
 end
 
@@ -643,14 +613,11 @@ end
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
 CreateButton(MainTab, "autofarm", "AUTO FARM (SMOOTH)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
-CreateButton(MainTab, "esp", "ESP PLAYERS & GUNS", 4, function() 
+CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function() 
     if states.esp then 
         for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
-        updateGunESP()
     else 
         for p, _ in pairs(espObjects) do removeESP(p) end 
-        for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
-        gunESPObjects = {}
     end 
 end)
 
@@ -722,8 +689,6 @@ StopBtn.MouseButton1Click:Connect(function()
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
-    for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
-    gunESPObjects = {}
 end)
 
 local SelectTargetBtn = Instance.new("TextButton"); 
