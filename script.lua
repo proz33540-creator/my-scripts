@@ -35,7 +35,7 @@ local Theme = {
     Accent = Color3.fromRGB(170, 0, 255), 
     AccentDark = Color3.fromRGB(100, 0, 160),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(20, 20, 25), -- Темно-серый (почти черный)
+    BtnOff = Color3.fromRGB(20, 20, 25), -- Темно-серый
     BtnOn = Color3.fromRGB(120, 0, 200),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
@@ -369,7 +369,7 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
--- СМЕНА ТЕМЫ
+-- СМЕНА ТЕМЫ (ИСПРАВЛЕНО)
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
@@ -380,6 +380,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     
     ColorCorrection.TintColor = accentColor
     
+    -- Перекрашиваем ГЛАВНЫЕ элементы
     UIStroke.Color = Theme.Accent
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))})
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
@@ -387,6 +388,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     SideBar.BackgroundColor3 = Theme.Secondary
     
+    -- ПРИНУДИТЕЛЬНАЯ ПЕРЕКРАСКА ВСЕХ ВКЛАДОК
     for name, t in pairs(Tabs) do
         t.stroke.Color = Theme.Accent
         t.btn.TextColor3 = Theme.TextColor
@@ -394,10 +396,11 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
             t.btn.BackgroundColor3 = Theme.BtnOn
             t.btn.TextColor3 = Theme.ActiveTextColor
         else
-            t.btn.BackgroundColor3 = Theme.BtnOff -- Черный/темный
+            t.btn.BackgroundColor3 = Theme.BtnOff
         end
     end
     
+    -- Перекрашиваем кнопки внутри вкладок
     for _, v in pairs(MainFrame:GetDescendants()) do
         if v:IsA("TextButton") or v:IsA("Frame") then
             if v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(255,140,0) or v.BackgroundColor3 == Color3.fromRGB(255,120,170) then
