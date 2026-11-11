@@ -8,6 +8,9 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+-- ВПИСАН ТВОЙ ID МОДЕЛИ
+local CUSTOM_SKIN_ID = 133992987200504
+
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
         if conn and typeof(conn) == "RBXScriptConnection" then pcall(function() conn:Disconnect() end) end
@@ -266,15 +269,17 @@ end
 
 local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
-local FilterTab = CreateTab("Filter Screen", 3)
+local AvatarTab = CreateTab("Avatar", 3)
+local FilterTab = CreateTab("Filter Screen", 4)
 
-local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
+local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
-local gunESPObjects = {} -- Таблица для оружия
+local gunESPObjects = {}
 local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
+local customSkinModel = nil
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "PurpleFilter"
@@ -283,6 +288,57 @@ ColorCorrection.Contrast = 0.15
 ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
+
+local function toggleCustomSkin()
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    if states.custom_skin then
+        if CUSTOM_SKIN_ID == 0 then return end
+        
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.Transparency = 1
+            elseif part:IsA("Decal") or part:IsA("Accessory") then
+                part:Destroy()
+            end
+        end
+
+        task.spawn(function()
+            local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. CUSTOM_SKIN_ID)[1] end)
+            if success and model then
+                customSkinModel = model
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    if customSkinModel:IsA("Model") then customSkinModel:PivotTo(hrp.CFrame) else customSkinModel.CFrame = hrp.CFrame end
+                    customSkinModel.Parent = char
+                    for _, part in pairs(customSkinModel:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                            part.Massless = true
+                            local weld = Instance.new("WeldConstraint")
+                            weld.Part0 = hrp
+                            weld.Part1 = part
+                            weld.Parent = part
+                        end
+                    end
+                end
+            else
+                warn("Не удалось загрузить модель скина. Проверь ID.")
+            end
+        end)
+    else
+        if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
+        end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum:RemoveAccessories()
+            if hum:GetAppliedDescription() then hum:ApplyDescription(hum:GetAppliedDescription()) end
+        end
+    end
+end
 
 local function startNoclip()
     if connections.noclip then connections.noclip:Disconnect() end
@@ -446,7 +502,6 @@ local function createESP(player)
     end
 end
 
--- ESP ДЛЯ ОРУЖИЯ (ЖЕЛТЫЙ ЦВЕТ)
 local function updateGunESP()
     if not states.esp then
         for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
@@ -464,7 +519,7 @@ local function updateGunESP()
                 if not gunESPObjects[obj] then
                     local hl = Instance.new("Highlight")
                     hl.Adornee = obj
-                    hl.FillColor = Color3.fromRGB(255, 255, 0) -- Желтый
+                    hl.FillColor = Color3.fromRGB(255, 255, 0)
                     hl.FillTransparency = 0.5
                     hl.OutlineColor = Color3.fromRGB(255, 255, 0)
                     hl.Parent = obj
@@ -574,7 +629,7 @@ GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
 GrabGunBtn.TextColor3 = Color3.new(1,1,1)
 GrabGunBtn.TextSize = 11
-GrabGunBtn.LayoutOrder = 6
+GrabGunBtn.LayoutOrder = 7
 GrabGunBtn.Parent = MainTab
 Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 6)
 GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
@@ -585,7 +640,7 @@ StopBtn.Size = UDim2.new(1, 0, 0, 34)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
 StopBtn.TextColor3 = Color3.new(1,1,1)
-StopBtn.LayoutOrder = 7
+StopBtn.LayoutOrder = 8
 StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
@@ -598,6 +653,35 @@ StopBtn.MouseButton1Click:Connect(function()
     gunESPObjects = {}
 end)
 
+-- АВАТАР ВКЛАДКА
+local SkinBtn = Instance.new("TextButton")
+SkinBtn.BackgroundColor3 = Theme.BtnOff
+SkinBtn.Size = UDim2.new(1, 0, 0, 34)
+SkinBtn.Font = Enum.Font.GothamBold
+SkinBtn.Text = "CUSTOM SKIN: OFF"
+SkinBtn.TextColor3 = Theme.Text
+SkinBtn.TextSize = 12
+SkinBtn.LayoutOrder = 1
+SkinBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 6)
+SkinBtn.MouseButton1Click:Connect(function()
+    states.custom_skin = not states.custom_skin
+    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
+    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
+    toggleCustomSkin()
+end)
+
+local SkinInfo = Instance.new("TextLabel")
+SkinInfo.BackgroundTransparency = 1
+SkinInfo.Size = UDim2.new(1, 0, 0, 30)
+SkinInfo.Font = Enum.Font.GothamBold
+SkinInfo.Text = "Your custom model will appear here."
+SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
+SkinInfo.TextSize = 11
+SkinInfo.LayoutOrder = 2
+SkinInfo.Parent = AvatarTab
+
+-- ОСТАЛЬНОЙ КОД (Target, Filter)
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -759,27 +843,31 @@ end)
 Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
 Tabs["Main"].frame.Visible = true
 
--- ЕДИНЫЙ ЦИКЛ ОБНОВЛЕНИЯ ESP (ОБНОВЛЯЕТСЯ КАЖДЫЙ КАДР ДЛЯ МГНОВЕННОГО ОТОБРАЖЕНИЯ)
-SaveConnection(RunService.RenderStepped:Connect(function()
+task.spawn(function()
+    while task.wait(1) do
+        if states.esp then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    if not espObjects[p] then createESP(p) end
+                else
+                    removeESP(p)
+                end
+            end
+        end
+    end
+end)
+
+SaveConnection(RunService.Heartbeat:Connect(function()
     if not states.esp then return end
-    
-    -- Обновление игроков
     for _, p in pairs(Players:GetPlayers()) do
-        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            if not espObjects[p] then createESP(p) end
-            -- Обновление цвета на лету (если поднял нож)
+        if p.Character and espObjects[p] then
             local c = getPlayerColor(p)
             for _, o in pairs(espObjects[p]) do
                 if o:IsA("Highlight") then o.FillColor = c; o.OutlineColor = c
                 elseif o:IsA("BillboardGui") and o:FindFirstChild("TextLabel") then o.TextLabel.TextColor3 = c end
             end
-        else
-            removeESP(p)
         end
     end
-    
-    -- Обновление оружия
-    updateGunESP()
 end))
 
 for _, p in pairs(Players:GetPlayers()) do createESP(p) end
