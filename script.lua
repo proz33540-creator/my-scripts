@@ -9,7 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 124844189564405 -- Твой новый фон
+local UI_BACKGROUND_ID = 124844189564405
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -536,6 +536,7 @@ local function removeESP(player)
     end
 end
 
+-- 3D БОКСЫ И ПОЛОСКА ЗДОРОВЬЯ
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -544,41 +545,55 @@ local function createESP(player)
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
-    -- Свечение (Неон)
+    -- Основной Highlight
     local hl = Instance.new("Highlight", char)
     hl.Adornee = char
     hl.FillColor = color
-    hl.FillTransparency = 0.5
+    hl.FillTransparency = 1
     hl.OutlineColor = color
     hl.OutlineTransparency = 0
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
 
-    -- Квадрат (Box) над головой
+    -- 3D Бокс вокруг всего тела
+    local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
+    if torso then
+        local box = Instance.new("BoxHandleAdornment")
+        box.Adornee = torso
+        box.Size = torso.Size + Vector3.new(0.5, 0.5, 0.5)
+        box.Color3 = color
+        box.Transparency = 0.8
+        box.AlwaysOnTop = true
+        box.ZIndex = 5
+        box.Parent = torso
+        table.insert(espObjects[player], box)
+    end
+
+    -- Полоска здоровья и имя
     if player ~= LocalPlayer then
         local bb = Instance.new("BillboardGui", char.Head)
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 50, 0, 50)
-        bb.ExtentsOffset = Vector3.new(0, 2.5, 0)
-        
-        -- Рамка
-        local frame = Instance.new("Frame", bb)
-        frame.BackgroundTransparency = 1
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        
-        local stroke = Instance.new("UIStroke", frame)
-        stroke.Color = color
-        stroke.Thickness = 2
-        
-        -- Имя
+        bb.Size = UDim2.new(0, 100, 0, 40)
+        bb.ExtentsOffset = Vector3.new(0, 3, 0)
+
+        local healthBarBg = Instance.new("Frame", bb)
+        healthBarBg.Size = UDim2.new(1, 0, 0, 6)
+        healthBarBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        healthBarBg.BorderSizePixel = 0
+
+        local healthBar = Instance.new("Frame", healthBarBg)
+        healthBar.Size = UDim2.new(1, 0, 1, 0)
+        healthBar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        healthBar.BorderSizePixel = 0
+
         local lbl = Instance.new("TextLabel", bb)
-        lbl.Size = UDim2.new(1, 0, 0, 20)
-        lbl.Position = UDim2.new(0, 0, 1, 5)
+        lbl.Size = UDim2.new(1, 0, 1, 0)
+        lbl.Position = UDim2.new(0, 0, 1, 2)
         lbl.BackgroundTransparency = 1
         lbl.Text = player.Name
         lbl.TextColor3 = color
         lbl.Font = Enum.Font.GothamBold
-        lbl.TextSize = 14
+        lbl.TextSize = 12
         lbl.TextStrokeTransparency = 0.5
         lbl.TextStrokeColor3 = Color3.new(0,0,0)
         
