@@ -266,11 +266,12 @@ end
 
 local MainTab = CreateTab("Main", 1)
 local TargetTab = CreateTab("Target", 2)
-local FilterTab = CreateTab("Filter Screen", 3) -- НОВАЯ ВКЛАДКА
+local FilterTab = CreateTab("Filter Screen", 3)
 
 local states = { esp = true, noclip = false, fly = false, autofarm = false, aimbot = false, purple_filter = false }
 local flySpeed = 50
 local espObjects = {}
+local gunESPObjects = {} -- Таблица для оружия
 local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
@@ -330,28 +331,48 @@ local function startFly()
     end)
 end
 
+local farmBV, farmBG
 local function startAutoFarm()
     if connections.farm then connections.farm:Disconnect() end
+    states.noclip = true
+    
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        farmBV = Instance.new("BodyVelocity", hrp)
+        farmBV.MaxForce = Vector3.new(9e5, 9e5, 9e5)
+        farmBV.Velocity = Vector3.new(0, 0, 0)
+        
+        farmBG = Instance.new("BodyGyro", hrp)
+        farmBG.MaxTorque = Vector3.new(9e5, 9e5, 9e5)
+        farmBG.P = 9e4
+        farmBG.CFrame = hrp.CFrame
+    end
+
     connections.farm = task.spawn(function()
         while states.autofarm do
-            local char = LocalPlayer.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            if hrp then
+            local c = LocalPlayer.Character
+            local h = c and c:FindFirstChild("HumanoidRootPart")
+            if h and farmBV then
                 local nearestPos, minD = nil, 1000
                 for _, obj in pairs(workspace:GetDescendants()) do
                     local n = string.lower(obj.Name)
-                    if (n:find("coin") or n:find("candy") or n:find("money")) and not obj:IsDescendantOf(char) then
+                    if (n:find("coin") or n:find("candy") or n:find("money")) and not obj:IsDescendantOf(c) then
                         local pos = obj:IsA("BasePart") and obj.Position or (obj:IsA("Model") and obj:GetPivot().Position)
                         if pos then
-                            local d = (hrp.Position - pos).Magnitude
+                            local d = (h.Position - pos).Magnitude
                             if d < minD then minD = d; nearestPos = pos end
                         end
                     end
                 end
+                
                 if nearestPos then
-                    hrp.CFrame = CFrame.new(nearestPos + Vector3.new(0, 2, 0))
-                    task.wait(0.05)
+                    local moveDir = (nearestPos - h.Position).Unit
+                    farmBV.Velocity = moveDir * 50
+                    farmBG.CFrame = CFrame.lookAt(h.Position, nearestPos)
+                    task.wait(0.1)
                 else
+                    farmBV.Velocity = Vector3.new(0, 0, 0)
                     task.wait(0.2)
                 end
             else
@@ -361,8 +382,11 @@ local function startAutoFarm()
     end)
 end
 local function stopAutoFarm()
+    states.autofarm = false
+    states.noclip = false
+    if farmBV then farmBV:Destroy() farmBV = nil end
+    if farmBG then farmBG:Destroy() farmBG = nil end
     if connections.farm then 
-        states.autofarm = false
         task.cancel(connections.farm)
         connections.farm = nil
     end
@@ -422,6 +446,59 @@ local function createESP(player)
     end
 end
 
+-- ESP ДЛЯ ОРУЖИЯ (ЖЕЛТЫЙ ЦВЕТ)
+local function updateGunESP()
+    if not states.esp then
+        for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
+        gunESPObjects = {}
+        return
+    end
+
+    local activeGuns = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        local name = string.lower(obj.Name)
+        if (name:find("gun") or name:find("revolver") or name:find("sheriff")) and (obj:IsA("Tool") or obj:IsA("Model") or obj:IsA("BasePart")) then
+            local rootPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+            if rootPart and not obj:IsDescendantOf(LocalPlayer.Character) then
+                activeGuns[obj] = true
+                if not gunESPObjects[obj] then
+                    local hl = Instance.new("Highlight")
+                    hl.Adornee = obj
+                    hl.FillColor = Color3.fromRGB(255, 255, 0) -- Желтый
+                    hl.FillTransparency = 0.5
+                    hl.OutlineColor = Color3.fromRGB(255, 255, 0)
+                    hl.Parent = obj
+                    
+                    local bb = Instance.new("BillboardGui")
+                    bb.Adornee = rootPart
+                    bb.AlwaysOnTop = true
+                    bb.Size = UDim2.new(0, 200, 0, 50)
+                    bb.ExtentsOffset = Vector3.new(0, 1, 0)
+                    bb.Parent = obj
+                    
+                    local text = Instance.new("TextLabel")
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.BackgroundTransparency = 1
+                    text.Text = "GUN"
+                    text.TextColor3 = Color3.fromRGB(255, 255, 0)
+                    text.Font = Enum.Font.GothamBold
+                    text.TextSize = 14
+                    text.Parent = bb
+
+                    gunESPObjects[obj] = {hl, bb}
+                end
+            end
+        end
+    end
+
+    for obj, tbl in pairs(gunESPObjects) do
+        if not activeGuns[obj] or not obj or not obj.Parent then
+            for _, v in pairs(tbl) do if v and v.Parent then v:Destroy() end end
+            gunESPObjects[obj] = nil
+        end
+    end
+end
+
 local function CreateButton(parent, name, displayName, order, onClick)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = states[name] and Theme.BtnOn or Theme.BtnOff
@@ -446,10 +523,16 @@ end
 
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
-CreateButton(MainTab, "autofarm", "AUTO FARM (FAST)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
-CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function() 
-    if states.esp then for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
-    else for p, _ in pairs(espObjects) do removeESP(p) end end 
+CreateButton(MainTab, "autofarm", "AUTO FARM (SMOOTH)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
+CreateButton(MainTab, "esp", "ESP PLAYERS & GUNS", 4, function() 
+    if states.esp then 
+        for _, p in pairs(Players:GetPlayers()) do createESP(p) end 
+        updateGunESP()
+    else 
+        for p, _ in pairs(espObjects) do removeESP(p) end 
+        for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
+        gunESPObjects = {}
+    end 
 end)
 
 local FovBgMain = Instance.new("Frame")
@@ -511,9 +594,10 @@ StopBtn.MouseButton1Click:Connect(function()
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
+    for _, obj in pairs(gunESPObjects) do if obj and obj.Parent then obj:Destroy() end end
+    gunESPObjects = {}
 end)
 
--- ==================== ВКЛАДКА TARGET ====================
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 30); 
@@ -645,7 +729,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- ==================== ВКЛАДКА FILTER SCREEN ====================
 local FilterBtn = Instance.new("TextButton")
 FilterBtn.BackgroundColor3 = Theme.BtnOff
 FilterBtn.Size = UDim2.new(1, 0, 0, 30)
@@ -676,31 +759,27 @@ end)
 Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
 Tabs["Main"].frame.Visible = true
 
-task.spawn(function()
-    while task.wait(1) do
-        if states.esp then
-            for _, p in pairs(Players:GetPlayers()) do
-                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    if not espObjects[p] then createESP(p) end
-                else
-                    removeESP(p)
-                end
-            end
-        end
-    end
-end)
-
-SaveConnection(RunService.Heartbeat:Connect(function()
+-- ЕДИНЫЙ ЦИКЛ ОБНОВЛЕНИЯ ESP (ОБНОВЛЯЕТСЯ КАЖДЫЙ КАДР ДЛЯ МГНОВЕННОГО ОТОБРАЖЕНИЯ)
+SaveConnection(RunService.RenderStepped:Connect(function()
     if not states.esp then return end
+    
+    -- Обновление игроков
     for _, p in pairs(Players:GetPlayers()) do
-        if p.Character and espObjects[p] then
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if not espObjects[p] then createESP(p) end
+            -- Обновление цвета на лету (если поднял нож)
             local c = getPlayerColor(p)
             for _, o in pairs(espObjects[p]) do
                 if o:IsA("Highlight") then o.FillColor = c; o.OutlineColor = c
                 elseif o:IsA("BillboardGui") and o:FindFirstChild("TextLabel") then o.TextLabel.TextColor3 = c end
             end
+        else
+            removeESP(p)
         end
     end
+    
+    -- Обновление оружия
+    updateGunESP()
 end))
 
 for _, p in pairs(Players:GetPlayers()) do createESP(p) end
