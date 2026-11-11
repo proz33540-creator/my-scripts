@@ -483,25 +483,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-local FilterBtn = Instance.new("TextButton")
-FilterBtn.BackgroundColor3 = Theme.BtnOff
-FilterBtn.Size = UDim2.new(1, 0, 0, 30)
-FilterBtn.Font = Enum.Font.GothamBold
-FilterBtn.Text = "PURPLE FILTER: OFF"
-FilterBtn.TextColor3 = Theme.Text
-FilterBtn.TextSize = 11
-FilterBtn.LayoutOrder = 6
-FilterBtn.Parent = MainTab
-Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 6)
-FilterBtn.MouseButton1Click:Connect(function()
-    states.purple_filter = not states.purple_filter
-    FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
-    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
-    FilterBtn2.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
-    FilterBtn2.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
-    ColorCorrection.Enabled = states.purple_filter
-end)
-
 local GrabGunBtn = Instance.new("TextButton")
 GrabGunBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
 GrabGunBtn.Size = UDim2.new(1, 0, 0, 30)
@@ -526,7 +507,6 @@ Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 6)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
     ColorCorrection.Enabled = false; states.purple_filter = false;
-    FilterBtn.Text = "PURPLE FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     FilterBtn2.Text = "FILTER: OFF"; FilterBtn2.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
@@ -677,8 +657,6 @@ FilterBtn2.MouseButton1Click:Connect(function()
     states.purple_filter = not states.purple_filter
     FilterBtn2.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
     FilterBtn2.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
-    FilterBtn.Text = "PURPLE FILTER: " .. (states.purple_filter and "ON" or "OFF")
-    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
     ColorCorrection.Enabled = states.purple_filter
 end)
 
