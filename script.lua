@@ -9,7 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 107174125347585 -- Твоя картинка с кошкой
+local UI_BACKGROUND_ID = 107174125347585
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -93,7 +93,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО (КРАСИВОЕ)
+-- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.BackgroundTransparency = 1 
@@ -262,7 +262,7 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- ВКЛАДКИ (С КРАСИВЫМ СТИЛЕМ)
+-- ВКЛАДКИ
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
 SideBar.BackgroundTransparency = 0.4
@@ -856,33 +856,29 @@ HitboxBtn.MouseButton1Click:Connect(function()
     states.hitbox = not states.hitbox
     HitboxBtn.Text = "HITBOX EXPANDER: " .. (states.hitbox and "ON" or "OFF")
     HitboxBtn.BackgroundColor3 = states.hitbox and Theme.BtnOn or Theme.BtnOff
-    
-    if states.hitbox then
-        if hitboxConnection then hitboxConnection:Disconnect() end
-        hitboxConnection = RunService.RenderStepped:Connect(function()
-            local char = LocalPlayer.Character
-            local knife = char and (char:FindFirstChild("Knife") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Knife")))
-            if knife and knife:FindFirstChild("Handle") then
-                local handle = knife.Handle
-                if handle and handle.Parent == char then
-                    local closestPlayer, minD = nil, 5000
-                    local myPos = char.HumanoidRootPart.Position
-                    for _, p in pairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                            local d = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
-                            if d < minD then minD = d; closestPlayer = p end
-                        end
-                    end
-                    if closestPlayer then
-                        handle.CFrame = CFrame.new(closestPlayer.Character.HumanoidRootPart.Position)
-                    else
-                        handle.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2)
+end)
+
+-- Скрипт клика ЛКМ для Hitbox
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and states.hitbox then
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if tool and tool.Name == "Knife" then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local tHum = p.Character:FindFirstChildOfClass("Humanoid")
+                    if tHum and tHum.Health > 0 then
+                        local oldCFrame = char.HumanoidRootPart.CFrame
+                        char.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+                        task.wait(0.05)
+                        pcall(function() tool:Activate() end)
+                        task.wait(0.05)
+                        char.HumanoidRootPart.CFrame = oldCFrame
                     end
                 end
             end
-        end)
-    else
-        if hitboxConnection then hitboxConnection:Disconnect() hitboxConnection = nil end
+        end
     end
 end)
 
