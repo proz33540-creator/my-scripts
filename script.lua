@@ -8,11 +8,8 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ID МОДЕЛЕЙ
 local CUSTOM_SKIN_ID = 124994246147928
 local UI_BACKGROUND_ID = 107174125347585
-local GUN_MODEL_ID = 78465406426440
-local KNIFE_MODEL_ID = 13290314307
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -112,14 +109,14 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.2
 
--- ФОН (ЧЕТКИЙ)
+-- ФОН
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. UI_BACKGROUND_ID
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0.05 -- Сделал почти непрозрачным
+BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 
@@ -318,7 +315,7 @@ local function CreateTab(name, order)
     frame.CanvasSize = UDim2.new(0, 0, 0, 0)
     frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     frame.ScrollBarThickness = 3
-    frame.ScrollBarImageColor3 = Theme.Accent
+    frame.ScrollBarImageColorId = Theme.Accent
     frame.Visible = false
     frame.ZIndex = 4
     frame.Parent = ContentFrame
@@ -346,7 +343,7 @@ local AvatarTab = CreateTab("Avatar", 3)
 local FilterTab = CreateTab("Filter Screen", 4)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false, custom_weapons = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
 local gunESPObjects = {}
@@ -354,7 +351,6 @@ local selectedTarget = nil
 local connections = {}
 local aimbotFov = 300
 local customSkinModel = nil
-local weaponConnection = nil
 
 local ColorCorrection = Instance.new("ColorCorrectionEffect")
 ColorCorrection.Name = "PurpleFilter"
@@ -406,49 +402,6 @@ local function toggleCustomSkin()
         if hum then
             hum:RemoveAccessories()
             if hum:GetAppliedDescription() then hum:ApplyDescription(hum:GetAppliedDescription()) end
-        end
-    end
-end
-
-local function applyWeaponSkin()
-    if not states.custom_weapons then return end
-    local char = LocalPlayer.Character
-    if not char then return end
-
-    for _, tool in pairs(char:GetChildren()) do
-        if tool:IsA("Tool") then
-            local isGun = tool.Name:lower():find("gun") or tool.Name:lower():find("revolver")
-            local isKnife = tool.Name:lower():find("knife")
-            
-            local modelId = isGun and GUN_MODEL_ID or (isKnife and KNIFE_MODEL_ID or 0)
-            if modelId ~= 0 then
-                local handle = tool:FindFirstChild("Handle")
-                if handle then
-                    for _, part in pairs(tool:GetChildren()) do
-                        if part:IsA("BasePart") and part ~= handle then part.Transparency = 1 end
-                    end
-                    handle.Transparency = 1
-                    
-                    if not tool:FindFirstChild("CustomModel") then
-                        local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. modelId)[1] end)
-                        if success and model then
-                            model.Name = "CustomModel"
-                            model.Parent = tool
-                            local modelRoot = model:IsA("Model") and model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart") or model
-                            if modelRoot then
-                                modelRoot.CFrame = handle.CFrame
-                                modelRoot.CanCollide = false
-                                modelRoot.Massless = true
-                                local weld = Instance.new("WeldConstraint")
-                                weld.Part0 = handle
-                                weld.Part1 = modelRoot
-                                weld.Parent = modelRoot
-                                if model:IsA("Model") then model:PivotTo(handle.CFrame) end
-                            end
-                        end
-                    end
-                end
-            end
         end
     end
 end
@@ -583,6 +536,7 @@ local function removeESP(player)
     end
 end
 
+-- КРАСИВОЕ ВХ С КВАДРАТОМ
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
@@ -591,32 +545,36 @@ local function createESP(player)
     espObjects[player] = {}
     local color = getPlayerColor(player)
     
+    -- Свечение (Неон)
     local hl = Instance.new("Highlight", char)
     hl.Adornee = char
     hl.FillColor = color
-    hl.FillTransparency = 1
+    hl.FillTransparency = 0.5
     hl.OutlineColor = color
     hl.OutlineTransparency = 0
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     table.insert(espObjects[player], hl)
 
-    local hlGlow = Instance.new("Highlight", char)
-    hlGlow.Adornee = char
-    hlGlow.FillColor = color
-    hlGlow.FillTransparency = 0.7
-    hlGlow.OutlineColor = color
-    hlGlow.OutlineTransparency = 0.5
-    hlGlow.DepthMode = Enum.HighlightDepthMode.Occluded
-    table.insert(espObjects[player], hlGlow)
-    
+    -- Квадрат (Box) над головой
     if player ~= LocalPlayer then
         local bb = Instance.new("BillboardGui", char.Head)
         bb.AlwaysOnTop = true
-        bb.Size = UDim2.new(0, 200, 0, 50)
+        bb.Size = UDim2.new(0, 50, 0, 50)
         bb.ExtentsOffset = Vector3.new(0, 2.5, 0)
         
+        -- Рамка
+        local frame = Instance.new("Frame", bb)
+        frame.BackgroundTransparency = 1
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        
+        local stroke = Instance.new("UIStroke", frame)
+        stroke.Color = color
+        stroke.Thickness = 2
+        
+        -- Имя
         local lbl = Instance.new("TextLabel", bb)
-        lbl.Size = UDim2.new(1, 0, 1, 0)
+        lbl.Size = UDim2.new(1, 0, 0, 20)
+        lbl.Position = UDim2.new(0, 0, 1, 5)
         lbl.BackgroundTransparency = 1
         lbl.Text = player.Name
         lbl.TextColor3 = color
@@ -772,7 +730,7 @@ StopBtn.Parent = MainTab
 Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false; states.custom_weapons = false; states.custom_skin = false;
+    states.hitbox = false; 
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
@@ -982,16 +940,15 @@ end)
 
 -- АВАТАР
 CreateButton(AvatarTab, "custom_skin", "CUSTOM SKIN", 1, function() toggleCustomSkin() end)
-CreateButton(AvatarTab, "custom_weapons", "CUSTOM WEAPONS", 2, function() applyWeaponSkin() end)
 
 local SkinInfo = Instance.new("TextLabel")
 SkinInfo.BackgroundTransparency = 1
 SkinInfo.Size = UDim2.new(1, 0, 0, 30)
 SkinInfo.Font = Enum.Font.GothamBold
-SkinInfo.Text = "Модели применятся после экипировки."
+SkinInfo.Text = "Модель применится."
 SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
 SkinInfo.TextSize = 11
-SkinInfo.LayoutOrder = 3
+SkinInfo.LayoutOrder = 2
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
@@ -1019,7 +976,6 @@ task.spawn(function()
                 end
             end
         end
-        if states.custom_weapons then applyWeaponSkin() end
     end
 end)
 
