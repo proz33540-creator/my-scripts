@@ -35,7 +35,7 @@ local Theme = {
     Accent = Color3.fromRGB(170, 0, 255), 
     AccentDark = Color3.fromRGB(100, 0, 160),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(35, 20, 50), 
+    BtnOff = Color3.fromRGB(20, 20, 25), -- Темно-серый (почти черный)
     BtnOn = Color3.fromRGB(120, 0, 200),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
@@ -394,14 +394,12 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
             t.btn.BackgroundColor3 = Theme.BtnOn
             t.btn.TextColor3 = Theme.ActiveTextColor
         else
-            t.btn.BackgroundColor3 = Theme.BtnOff
+            t.btn.BackgroundColor3 = Theme.BtnOff -- Черный/темный
         end
     end
     
-    -- ПРИНУДИТЕЛЬНАЯ ПЕРЕКРАСКА ВСЕХ КНОПОК ВО ВСЕХ ВКЛАДКАХ
     for _, v in pairs(MainFrame:GetDescendants()) do
         if v:IsA("TextButton") or v:IsA("Frame") then
-            -- Если это кнопка/рамка с фоном, похожим на BtnOn, перекрашиваем
             if v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(255,140,0) or v.BackgroundColor3 == Color3.fromRGB(255,120,170) then
                  v.BackgroundColor3 = Theme.BtnOn
             end
