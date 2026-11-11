@@ -369,7 +369,7 @@ ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
 -- СМЕНА ТЕМЫ
-local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, isOrangeOrPink)
+local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
