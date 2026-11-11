@@ -9,7 +9,7 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local CUSTOM_SKIN_ID = 124994246147928
-local UI_BACKGROUND_ID = 107174125347585
+local UI_BACKGROUND_ID = 124844189564405 -- Твой новый фон
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -315,7 +315,7 @@ local function CreateTab(name, order)
     frame.CanvasSize = UDim2.new(0, 0, 0, 0)
     frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     frame.ScrollBarThickness = 3
-    frame.ScrollBarImageColorId = Theme.Accent
+    frame.ScrollBarImageColor3 = Theme.Accent
     frame.Visible = false
     frame.ZIndex = 4
     frame.Parent = ContentFrame
@@ -536,7 +536,6 @@ local function removeESP(player)
     end
 end
 
--- КРАСИВОЕ ВХ С КВАДРАТОМ
 local function createESP(player)
     if not states.esp then return end
     removeESP(player)
