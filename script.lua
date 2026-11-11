@@ -36,7 +36,8 @@ local Theme = {
     AccentDark = Color3.fromRGB(100, 0, 160),
     Text = Color3.fromRGB(255, 255, 255), 
     BtnOff = Color3.fromRGB(35, 20, 50), 
-    BtnOn = Color3.fromRGB(120, 0, 200)
+    BtnOn = Color3.fromRGB(120, 0, 200),
+    TextColor = Color3.fromRGB(255, 255, 255)
 }
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -145,7 +146,7 @@ Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0, 150, 1, 0)
 Title.Font = Enum.Font.GothamBlack
 Title.Text = "PURPLE HUB"
-Title.TextColor3 = Theme.Text
+Title.TextColor3 = Theme.TextColor
 Title.TextSize = 18
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.ZIndex = 3
@@ -169,7 +170,7 @@ MinimizeBtn.Position = UDim2.new(1, -60, 0, 10)
 MinimizeBtn.Size = UDim2.new(0, 22, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = Theme.Text
+MinimizeBtn.TextColor3 = Theme.TextColor
 MinimizeBtn.TextSize = 18
 MinimizeBtn.ZIndex = 3
 MinimizeBtn.Parent = TopBar
@@ -181,7 +182,7 @@ CloseBtn.Position = UDim2.new(1, -30, 0, 10)
 CloseBtn.Size = UDim2.new(0, 22, 0, 24)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "×"
-CloseBtn.TextColor3 = Theme.Text
+CloseBtn.TextColor3 = Theme.TextColor
 CloseBtn.TextSize = 18
 CloseBtn.ZIndex = 3
 CloseBtn.Parent = TopBar
@@ -303,7 +304,7 @@ local function CreateTab(name, order)
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
-    btn.TextColor3 = Theme.Text
+    btn.TextColor3 = Theme.TextColor
     btn.TextSize = 12
     btn.LayoutOrder = order
     btn.ZIndex = 3
@@ -368,11 +369,12 @@ ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
 -- СМЕНА ТЕМЫ
-local function changeTheme(bgId, accentColor, accentDark, btnOn)
+local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, isOrangeOrPink)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
     Theme.BtnOn = btnOn
+    Theme.TextColor = textColor or Color3.fromRGB(255, 255, 255)
     
     ColorCorrection.TintColor = accentColor
     
@@ -385,6 +387,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn)
     
     for name, t in pairs(Tabs) do
         t.stroke.Color = Theme.Accent
+        t.btn.TextColor3 = Theme.TextColor
         if t.frame.Visible then
             t.btn.BackgroundColor3 = Theme.BtnOn
         else
@@ -397,6 +400,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn)
             if v.BackgroundColor3 == Theme.BtnOn or v.BackgroundColor3 == Color3.fromRGB(120,0,200) or v.BackgroundColor3 == Color3.fromRGB(200,100,0) then
                  v.BackgroundColor3 = Theme.BtnOn
             end
+            if v:IsA("TextLabel") or v:IsA("TextButton") then v.TextColor3 = Theme.TextColor end
             local stroke = v:FindFirstChildOfClass("UIStroke")
             if stroke then stroke.Color = Theme.Accent end
         end
@@ -623,7 +627,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
     btn.Size = UDim2.new(1, 0, 0, 34)
     btn.Font = Enum.Font.GothamBold
     btn.Text = displayName .. ": " .. (states[name] and "ON" or "OFF")
-    btn.TextColor3 = Theme.Text
+    btn.TextColor3 = Theme.TextColor
     btn.TextSize = 12
     btn.LayoutOrder = order
     btn.ZIndex = 4
@@ -683,7 +687,7 @@ FovSliderMain.BackgroundColor3 = Theme.Accent
 FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0) 
 FovSliderMain.Text = "Camera FOV: 70"
 FovSliderMain.Font = Enum.Font.GothamBold
-FovSliderMain.TextColor3 = Color3.new(1,1,1)
+FovSliderMain.TextColor3 = Theme.TextColor
 FovSliderMain.TextSize = 11
 FovSliderMain.ZIndex = 4
 FovSliderMain.Parent = FovBgMain
@@ -710,7 +714,7 @@ GrabGunBtn.BackgroundTransparency = 0.4
 GrabGunBtn.Size = UDim2.new(1, 0, 0, 34)
 GrabGunBtn.Font = Enum.Font.GothamBold
 GrabGunBtn.Text = "GRAB GUN NOW"
-GrabGunBtn.TextColor3 = Color3.new(1,1,1)
+GrabGunBtn.TextColor3 = Theme.TextColor
 GrabGunBtn.TextSize = 12
 GrabGunBtn.LayoutOrder = 6
 GrabGunBtn.ZIndex = 4
@@ -724,7 +728,7 @@ StopBtn.BackgroundTransparency = 0.4
 StopBtn.Size = UDim2.new(1, 0, 0, 36)
 StopBtn.Font = Enum.Font.GothamBold
 StopBtn.Text = "STOP ALL"
-StopBtn.TextColor3 = Color3.new(1,1,1)
+StopBtn.TextColor3 = Theme.TextColor
 StopBtn.LayoutOrder = 7
 StopBtn.ZIndex = 4
 StopBtn.Parent = MainTab
@@ -744,7 +748,7 @@ SelectTargetBtn.BackgroundTransparency = 0.4
 SelectTargetBtn.Size = UDim2.new(1, 0, 0, 34); 
 SelectTargetBtn.Font = Enum.Font.GothamBold; 
 SelectTargetBtn.Text = "Target: None"; 
-SelectTargetBtn.TextColor3 = Theme.Text; 
+SelectTargetBtn.TextColor3 = Theme.TextColor; 
 SelectTargetBtn.LayoutOrder = 1; 
 SelectTargetBtn.ZIndex = 4
 SelectTargetBtn.Parent = TargetTab
@@ -778,7 +782,7 @@ local function refreshPlayerList()
             pBtn.Size = UDim2.new(1, -4, 0, 28)
             pBtn.Font = Enum.Font.GothamBold
             pBtn.Text = p.Name
-            pBtn.TextColor3 = Theme.Text
+            pBtn.TextColor3 = Theme.TextColor
             pBtn.TextSize = 11
             pBtn.ZIndex = 5
             pBtn.Parent = PlayerListScroll
@@ -802,7 +806,7 @@ SelectTargetBtn.MouseButton1Click:Connect(function()
     if PlayerListScroll.Visible then refreshPlayerList() end
 end)
 
-local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.BackgroundTransparency = 0.4; TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Color3.new(1,1,1); TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
+local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.BackgroundTransparency = 0.4; TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Theme.TextColor; TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
 Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 8)
 TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
 
@@ -860,7 +864,7 @@ AimFovSlider.BackgroundColor3 = Theme.Accent;
 AimFovSlider.Size = UDim2.new(0.6, 0, 1, 0); 
 AimFovSlider.Text = "Aimbot FOV: 300"; 
 AimFovSlider.Font = Enum.Font.GothamBold; 
-AimFovSlider.TextColor3 = Color3.new(1,1,1); 
+AimFovSlider.TextColor3 = Theme.TextColor; 
 AimFovSlider.TextSize = 10; 
 AimFovSlider.ZIndex = 4
 AimFovSlider.Parent = AimFovBg
@@ -888,7 +892,7 @@ HitboxBtn.BackgroundTransparency = 0.4
 HitboxBtn.Size = UDim2.new(1, 0, 0, 36)
 HitboxBtn.Font = Enum.Font.GothamBold
 HitboxBtn.Text = "HITBOX EXPANDER: OFF"
-HitboxBtn.TextColor3 = Color3.new(1,1,1)
+HitboxBtn.TextColor3 = Theme.TextColor
 HitboxBtn.TextSize = 12
 HitboxBtn.LayoutOrder = 6
 HitboxBtn.ZIndex = 4
@@ -930,7 +934,7 @@ FilterBtn.BackgroundTransparency = 0.4
 FilterBtn.Size = UDim2.new(1, 0, 0, 34)
 FilterBtn.Font = Enum.Font.GothamBold
 FilterBtn.Text = "FILTER: OFF"
-FilterBtn.TextColor3 = Theme.Text
+FilterBtn.TextColor3 = Theme.TextColor
 FilterBtn.TextSize = 12
 FilterBtn.LayoutOrder = 1
 FilterBtn.ZIndex = 4
@@ -950,7 +954,7 @@ SkinBtn.BackgroundTransparency = 0.4
 SkinBtn.Size = UDim2.new(1, 0, 0, 36)
 SkinBtn.Font = Enum.Font.GothamBold
 SkinBtn.Text = "CUSTOM SKIN: OFF"
-SkinBtn.TextColor3 = Theme.Text
+SkinBtn.TextColor3 = Theme.TextColor
 SkinBtn.TextSize = 12
 SkinBtn.LayoutOrder = 1
 SkinBtn.ZIndex = 4
@@ -975,14 +979,14 @@ SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
 -- ТЕМА (ФОНЫ)
-local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, order)
+local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
     btn.BackgroundTransparency = 0.4
     btn.Size = UDim2.new(1, 0, 0, 40)
     btn.Font = Enum.Font.GothamBold
     btn.Text = text
-    btn.TextColor3 = Theme.Text
+    btn.TextColor3 = Theme.TextColor
     btn.TextSize = 12
     btn.LayoutOrder = order
     btn.ZIndex = 4
@@ -998,13 +1002,13 @@ local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, order)
     btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
     
     btn.MouseButton1Click:Connect(function()
-        changeTheme(bgId, accent, accentDark, btnOn)
+        changeTheme(bgId, accent, accentDark, btnOn, textColor)
     end)
 end
 
-CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), 1)
-CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), 2)
-CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), 3)
+CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1)
+CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), 2)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), Color3.fromRGB(255, 255, 255), 3)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
