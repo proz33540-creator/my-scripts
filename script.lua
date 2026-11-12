@@ -35,13 +35,12 @@ local Theme = {
     Accent = Color3.fromRGB(170, 0, 255), 
     AccentDark = Color3.fromRGB(100, 0, 160),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(20, 20, 25), -- Темный/Черный
+    BtnOff = Color3.fromRGB(20, 20, 25),
     BtnOn = Color3.fromRGB(120, 0, 200),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
 
--- Хранилище всех созданных кнопок для обновления темы
 local AllButtons = {}
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -102,10 +101,10 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО
+-- ОСНОВНОЕ ОКНО (ФОН УБРАН НАВСЕГДА)
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 0
+MainFrame.BackgroundTransparency = 1 -- ПОЛНОСТЬЮ ПРОЗРАЧНО
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -118,7 +117,7 @@ UIStroke.Color = Theme.Accent
 UIStroke.Thickness = 2
 UIStroke.Transparency = 0.2
 
--- ФОН
+-- ФОН (КАРТИНКА)
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
@@ -129,6 +128,7 @@ BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
+-- Если картинка не нужна, добавь: BackgroundImage.ImageTransparency = 1
 
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
@@ -274,10 +274,10 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- САЙДБАР
+-- САЙДБАР (ФОН УБРАН)
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 0.3
+SideBar.BackgroundTransparency = 1 -- ПОЛНОСТЬЮ ПРОЗРАЧНО
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -373,7 +373,6 @@ ColorCorrection.Saturation = 0.1
 ColorCorrection.Enabled = false
 ColorCorrection.Parent = Lighting
 
--- ФУНКЦИЯ ПРИМЕНЕНИЯ ТЕМЫ КО ВСЕМ КНОПКАМ
 local function ApplyThemeToAll()
     for _, item in ipairs(AllButtons) do
         if item.btn and item.btn.Parent then
@@ -387,7 +386,6 @@ local function ApplyThemeToAll()
                 end
                 item.btn.TextColor3 = Theme.TextColor
             else
-                -- Обычные кнопки
                 if item.btn.Text:find("ON") then
                     item.btn.BackgroundColor3 = Theme.BtnOn
                 else
@@ -399,7 +397,6 @@ local function ApplyThemeToAll()
         end
     end
     
-    -- Обновляем обводки у фреймов (слайдеры)
     for _, v in pairs(MainFrame:GetDescendants()) do
         if v:IsA("UIStroke") then
             v.Color = Theme.Accent
@@ -410,7 +407,6 @@ local function ApplyThemeToAll()
     end
 end
 
--- СМЕНА ТЕМЫ
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
@@ -426,6 +422,8 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
     MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
+    
+    -- Сайдбар и главное окно остаются прозрачными
     SideBar.BackgroundColor3 = Theme.Secondary
     
     ApplyThemeToAll()
