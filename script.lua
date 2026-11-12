@@ -11,7 +11,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local CUSTOM_SKIN_ID = 124994246147928
 
 -- ID ФОНОВ
-local BG_DEFAULT = 123806149814449 -- ТВОЙ НОВЫЙ ID
+local BG_DEFAULT = 123806149814449
 local BG_ORANGE = 138974528086602
 local BG_SAKURA = 111536806870768
 
@@ -29,15 +29,14 @@ end
 
 if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
--- ИЗМЕНЕНА ДЕФОЛТНАЯ ТЕМА НА ЧЕРНУЮ
 local Theme = { 
     Main = Color3.fromRGB(15, 10, 20), 
     Secondary = Color3.fromRGB(30, 15, 45), 
-    Accent = Color3.fromRGB(30, 30, 30), -- Темно-серый акцент (вместо фиолетового)
+    Accent = Color3.fromRGB(30, 30, 30), -- Темно-серый акцент для дефолтной
     AccentDark = Color3.fromRGB(20, 20, 20),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(15, 15, 15), -- Черный фон кнопок
-    BtnOn = Color3.fromRGB(50, 50, 50), -- Темно-серый при включении
+    BtnOff = Color3.fromRGB(15, 15, 15),
+    BtnOn = Color3.fromRGB(50, 50, 50),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
@@ -102,7 +101,7 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО (ФОН УБРАН)
+-- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
 MainFrame.BackgroundTransparency = 1
@@ -139,8 +138,9 @@ TopBar.ZIndex = 2
 TopBar.ClipsDescendants = true
 TopBar.Parent = MainFrame
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
+
 local TopGradient = Instance.new("UIGradient")
-TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))})
+TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
 TopGradient.Rotation = 45
 TopGradient.Parent = TopBar
 
@@ -162,7 +162,7 @@ AuthorText.Position = UDim2.new(0, 150, 0, 0)
 AuthorText.Size = UDim2.new(0, 200, 1, 0)
 AuthorText.Font = Enum.Font.GothamMedium
 AuthorText.Text = "Author: Secret"
-AuthorText.TextColor3 = Color3.fromRGB(200, 150, 255)
+AuthorText.TextColor3 = Color3.fromRGB(255, 255, 255)
 AuthorText.TextSize = 12
 AuthorText.TextXAlignment = Enum.TextXAlignment.Left
 AuthorText.ZIndex = 3
@@ -274,7 +274,7 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- САЙДБАР (ФОН УБРАН)
+-- САЙДБАР
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
 SideBar.BackgroundTransparency = 1
@@ -351,10 +351,11 @@ local function CreateTab(name, order)
 end
 
 local MainTab = CreateTab("Main", 1)
-local TargetTab = CreateTab("Target", 2)
-local AvatarTab = CreateTab("Avatar", 3)
-local FilterTab = CreateTab("Filter Screen", 4)
-local ThemeTab = CreateTab("Theme", 5)
+local PlayerTab = CreateTab("Player", 2) -- НОВАЯ ВКЛАДКА
+local TargetTab = CreateTab("Target", 3)
+local AvatarTab = CreateTab("Avatar", 4)
+local FilterTab = CreateTab("Filter Screen", 5)
+local ThemeTab = CreateTab("Theme", 6)
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
@@ -418,7 +419,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ColorCorrection.TintColor = accentColor
     
     UIStroke.Color = Theme.Accent
-    TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 80))})
+    TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
     MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
@@ -769,6 +770,121 @@ StopBtn.MouseButton1Click:Connect(function()
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
+-- ВКЛАДКА PLAYER (WALKSPEED & JUMPPOWER)
+local SpeedBg = Instance.new("Frame")
+SpeedBg.BackgroundColor3 = Theme.BtnOff
+SpeedBg.BackgroundTransparency = 0.4
+SpeedBg.Size = UDim2.new(1, 0, 0, 34)
+SpeedBg.LayoutOrder = 1
+SpeedBg.ZIndex = 4
+SpeedBg.Parent = PlayerTab
+Instance.new("UICorner", SpeedBg).CornerRadius = UDim.new(0, 8)
+local SpeedStroke = Instance.new("UIStroke", SpeedBg)
+SpeedStroke.Color = Theme.Accent
+SpeedStroke.Thickness = 1
+SpeedStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = SpeedBg, stroke = SpeedStroke, isTab = false})
+
+local SpeedSlider = Instance.new("TextButton")
+SpeedSlider.BackgroundColor3 = Theme.Accent
+SpeedSlider.Size = UDim2.new(0.2, 0, 1, 0) 
+SpeedSlider.Text = "Speed: 16"
+SpeedSlider.Font = Enum.Font.GothamBold
+SpeedSlider.TextColor3 = Theme.TextColor
+SpeedSlider.TextSize = 11
+SpeedSlider.ZIndex = 4
+SpeedSlider.Parent = SpeedBg
+Instance.new("UICorner", SpeedSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingSpeed = false
+SpeedSlider.MouseButton1Down:Connect(function() draggingSpeed = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSpeed = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingSpeed then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = SpeedBg.AbsolutePosition.X; local frameSize = SpeedBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.05, 1)
+        SpeedSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        local ws = math.floor(16 + (relativeX * 234))
+        SpeedSlider.Text = "Speed: " .. ws
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = ws end
+    end
+end)
+
+local JumpBg = Instance.new("Frame")
+JumpBg.BackgroundColor3 = Theme.BtnOff
+JumpBg.BackgroundTransparency = 0.4
+JumpBg.Size = UDim2.new(1, 0, 0, 34)
+JumpBg.LayoutOrder = 2
+JumpBg.ZIndex = 4
+JumpBg.Parent = PlayerTab
+Instance.new("UICorner", JumpBg).CornerRadius = UDim.new(0, 8)
+local JumpStroke = Instance.new("UIStroke", JumpBg)
+JumpStroke.Color = Theme.Accent
+JumpStroke.Thickness = 1
+JumpStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = JumpBg, stroke = JumpStroke, isTab = false})
+
+local JumpSlider = Instance.new("TextButton")
+JumpSlider.BackgroundColor3 = Theme.Accent
+JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
+JumpSlider.Text = "Jump: 50"
+JumpSlider.Font = Enum.Font.GothamBold
+JumpSlider.TextColor3 = Theme.TextColor
+JumpSlider.TextSize = 11
+JumpSlider.ZIndex = 4
+JumpSlider.Parent = JumpBg
+Instance.new("UICorner", JumpSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingJump = false
+JumpSlider.MouseButton1Down:Connect(function() draggingJump = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingJump = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingJump then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = JumpBg.AbsolutePosition.X; local frameSize = JumpBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.05, 1)
+        JumpSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        local jp = math.floor(50 + (relativeX * 450))
+        JumpSlider.Text = "Jump: " .. jp
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.JumpPower = jp
+            hum.UseJumpPower = true
+        end
+    end
+end)
+
+local ResetPlayerBtn = Instance.new("TextButton")
+ResetPlayerBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+ResetPlayerBtn.BackgroundTransparency = 0.4
+ResetPlayerBtn.Size = UDim2.new(1, 0, 0, 36)
+ResetPlayerBtn.Font = Enum.Font.GothamBold
+ResetPlayerBtn.Text = "RESET STATS"
+ResetPlayerBtn.TextColor3 = Theme.TextColor
+ResetPlayerBtn.LayoutOrder = 3
+ResetPlayerBtn.ZIndex = 4
+ResetPlayerBtn.Parent = PlayerTab
+Instance.new("UICorner", ResetPlayerBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = ResetPlayerBtn, stroke = nil, isTab = false})
+ResetPlayerBtn.MouseButton1Click:Connect(function()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = 16
+        hum.JumpPower = 50
+        hum.UseJumpPower = true
+    end
+    SpeedSlider.Size = UDim2.new(0.2, 0, 1, 0)
+    SpeedSlider.Text = "Speed: 16"
+    JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
+    JumpSlider.Text = "Jump: 50"
+end)
+
+-- ВКЛАДКА TARGET
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
 SelectTargetBtn.BackgroundTransparency = 0.4
@@ -1043,7 +1159,6 @@ end
 
 CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
 CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
--- СЮДА ДОБАВЛЕНА ЧЕРНАЯ ТЕМА
 CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
 
 UserInputService.InputBegan:Connect(function(input, gp)
