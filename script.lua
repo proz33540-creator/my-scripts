@@ -11,7 +11,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local CUSTOM_SKIN_ID = 124994246147928
 
 -- ID ФОНОВ
-local BG_DEFAULT = 124844189564405
+local BG_DEFAULT = 123806149814449 -- ТВОЙ НОВЫЙ ID
 local BG_ORANGE = 138974528086602
 local BG_SAKURA = 111536806870768
 
@@ -29,14 +29,15 @@ end
 
 if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
+-- ИЗМЕНЕНА ДЕФОЛТНАЯ ТЕМА НА ЧЕРНУЮ
 local Theme = { 
     Main = Color3.fromRGB(15, 10, 20), 
     Secondary = Color3.fromRGB(30, 15, 45), 
-    Accent = Color3.fromRGB(170, 0, 255), 
-    AccentDark = Color3.fromRGB(100, 0, 160),
+    Accent = Color3.fromRGB(30, 30, 30), -- Темно-серый акцент (вместо фиолетового)
+    AccentDark = Color3.fromRGB(20, 20, 20),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(20, 20, 25),
-    BtnOn = Color3.fromRGB(120, 0, 200),
+    BtnOff = Color3.fromRGB(15, 15, 15), -- Черный фон кнопок
+    BtnOn = Color3.fromRGB(50, 50, 50), -- Темно-серый при включении
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
@@ -101,10 +102,10 @@ FovStroke.Color = Theme.Accent
 FovStroke.Thickness = 2
 FovStroke.Transparency = 0.5
 
--- ОСНОВНОЕ ОКНО (ФОН УБРАН НАВСЕГДА)
+-- ОСНОВНОЕ ОКНО (ФОН УБРАН)
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 1 -- ПОЛНОСТЬЮ ПРОЗРАЧНО
+MainFrame.BackgroundTransparency = 1
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -128,7 +129,6 @@ BackgroundImage.ImageTransparency = 0.05
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
--- Если картинка не нужна, добавь: BackgroundImage.ImageTransparency = 1
 
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
@@ -277,7 +277,7 @@ end)
 -- САЙДБАР (ФОН УБРАН)
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 1 -- ПОЛНОСТЬЮ ПРОЗРАЧНО
+SideBar.BackgroundTransparency = 1
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -423,7 +423,6 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     
-    -- Сайдбар и главное окно остаются прозрачными
     SideBar.BackgroundColor3 = Theme.Secondary
     
     ApplyThemeToAll()
@@ -664,7 +663,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
     table.insert(AllButtons, {btn = btn, stroke = stroke, isTab = false})
     
     btn.MouseEnter:Connect(function() 
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(110, 0, 170), BackgroundTransparency = 0.2}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.AccentDark, BackgroundTransparency = 0.2}):Play()
         TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
     end)
     btn.MouseLeave:Connect(function() 
@@ -1012,7 +1011,7 @@ SkinInfo.LayoutOrder = 2
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
--- ТЕМА (ФОНЫ) - С ПРОЗРАЧНОСТЬЮ 0.4
+-- ТЕМА (ФОНЫ)
 local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
@@ -1044,7 +1043,8 @@ end
 
 CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
 CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
-CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(170, 0, 255), Color3.fromRGB(100, 0, 160), Color3.fromRGB(120, 0, 200), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
+-- СЮДА ДОБАВЛЕНА ЧЕРНАЯ ТЕМА
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
