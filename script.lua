@@ -32,7 +32,7 @@ if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:D
 local Theme = { 
     Main = Color3.fromRGB(15, 10, 20), 
     Secondary = Color3.fromRGB(30, 15, 45), 
-    Accent = Color3.fromRGB(30, 30, 30), -- Темно-серый акцент для дефолтной
+    Accent = Color3.fromRGB(30, 30, 30),
     AccentDark = Color3.fromRGB(20, 20, 20),
     Text = Color3.fromRGB(255, 255, 255), 
     BtnOff = Color3.fromRGB(15, 15, 15),
@@ -351,14 +351,14 @@ local function CreateTab(name, order)
 end
 
 local MainTab = CreateTab("Main", 1)
-local PlayerTab = CreateTab("Player", 2) -- НОВАЯ ВКЛАДКА
+local PlayerTab = CreateTab("Player", 2)
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false, bunnyhop = false }
 local flySpeed = 50
 local espObjects = {}
 local selectedTarget = nil
@@ -770,7 +770,7 @@ StopBtn.MouseButton1Click:Connect(function()
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
--- ВКЛАДКА PLAYER (WALKSPEED & JUMPPOWER)
+-- ВКЛАДКА PLAYER (WALKSPEED, JUMPPOWER & BUNNY HOP)
 local SpeedBg = Instance.new("Frame")
 SpeedBg.BackgroundColor3 = Theme.BtnOff
 SpeedBg.BackgroundTransparency = 0.4
@@ -858,6 +858,25 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+-- БАННИ ХОП (АВТО-ПРЫЖОК)
+CreateButton(PlayerTab, "bunnyhop", "BUNNY HOP", 3, function()
+    if states.bunnyhop then
+        states.bunnyhop = true
+        if connections.bhop then connections.bhop:Disconnect() end
+        connections.bhop = SaveConnection(RunService.Stepped:Connect(function()
+            if not states.bunnyhop then return end
+            local char = LocalPlayer.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and hum.FloorMaterial ~= Enum.Material.Air then
+                hum.Jump = true
+            end
+        end))
+    else
+        states.bunnyhop = false
+        if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
+    end
+end)
+
 local ResetPlayerBtn = Instance.new("TextButton")
 ResetPlayerBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
 ResetPlayerBtn.BackgroundTransparency = 0.4
@@ -865,7 +884,7 @@ ResetPlayerBtn.Size = UDim2.new(1, 0, 0, 36)
 ResetPlayerBtn.Font = Enum.Font.GothamBold
 ResetPlayerBtn.Text = "RESET STATS"
 ResetPlayerBtn.TextColor3 = Theme.TextColor
-ResetPlayerBtn.LayoutOrder = 3
+ResetPlayerBtn.LayoutOrder = 4
 ResetPlayerBtn.ZIndex = 4
 ResetPlayerBtn.Parent = PlayerTab
 Instance.new("UICorner", ResetPlayerBtn).CornerRadius = UDim.new(0, 8)
