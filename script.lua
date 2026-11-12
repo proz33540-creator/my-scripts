@@ -763,14 +763,18 @@ Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 table.insert(AllButtons, {btn = StopBtn, stroke = nil, isTab = false})
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false; 
+    states.hitbox = false; states.bunnyhop = false;
+    if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.WalkSpeed = 16; hum.JumpPower = 50; hum.UseJumpPower = true end
     ColorCorrection.Enabled = false; states.purple_filter = false;
     FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
     Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
--- ВКЛАДКА PLAYER (WALKSPEED, JUMPPOWER & BUNNY HOP)
+-- ВКЛАДКА PLAYER (WALKSPEED, JUMPPOWER & BUNNY HOP / РАСПРЫЖКА)
 local SpeedBg = Instance.new("Frame")
 SpeedBg.BackgroundColor3 = Theme.BtnOff
 SpeedBg.BackgroundTransparency = 0.4
@@ -807,9 +811,11 @@ UserInputService.InputChanged:Connect(function(input)
         SpeedSlider.Size = UDim2.new(relativeX, 0, 1, 0)
         local ws = math.floor(16 + (relativeX * 234))
         SpeedSlider.Text = "Speed: " .. ws
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = ws end
+        if not states.bunnyhop then
+            local char = LocalPlayer.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = ws end
+        end
     end
 end)
 
@@ -858,22 +864,39 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- БАННИ ХОП (АВТО-ПРЫЖОК)
-CreateButton(PlayerTab, "bunnyhop", "BUNNY HOP", 3, function()
+-- БАННИ ХОП (РАСПРЫЖКА)
+CreateButton(PlayerTab, "bunnyhop", "BUNNY HOP (SPEED BOOST)", 3, function()
     if states.bunnyhop then
         states.bunnyhop = true
         if connections.bhop then connections.bhop:Disconnect() end
+        
+        local baseSpeed = 16
+        local maxSpeed = 250
+        local increment = 2
+        local currentSpeed = baseSpeed
+        
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = baseSpeed end
+        
         connections.bhop = SaveConnection(RunService.Stepped:Connect(function()
             if not states.bunnyhop then return end
             local char = LocalPlayer.Character
             local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hum and hum.FloorMaterial ~= Enum.Material.Air then
-                hum.Jump = true
+            if hum then
+                if hum.FloorMaterial ~= Enum.Material.Air then
+                    hum.Jump = true
+                    currentSpeed = math.min(currentSpeed + increment, maxSpeed)
+                    hum.WalkSpeed = currentSpeed
+                end
             end
         end))
     else
         states.bunnyhop = false
         if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = 16 end
     end
 end)
 
@@ -901,6 +924,8 @@ ResetPlayerBtn.MouseButton1Click:Connect(function()
     SpeedSlider.Text = "Speed: 16"
     JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
     JumpSlider.Text = "Jump: 50"
+    states.bunnyhop = false
+    if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
 end)
 
 -- ВКЛАДКА TARGET
