@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ СКИНОВ (АВТОМАТИЧЕСКОЕ ВЫРАВНИВАНИЕ)
+-- ФУНКЦИЯ СКИНОВ (ЖЕСТКИЙ ПОВОРОТ НАПРАВО)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -464,31 +464,13 @@ local function toggleCustomSkin(skinId)
                         end
                     end
 
-                    -- 2. АВТОМАТИЧЕСКОЕ ВЫРАВНИВАНИЕ (ставим на ноги)
+                    -- 2. ЖЕСТКИЙ ПОВОРОТ: Сначала ставим на ноги (-90 X), затем смотрим направо (90 Y)
+                    local targetCFrame = hrp.CFrame
                     if skinId == SKIN_ZAYTS then
-                        -- Находим самую нижнюю и самую верхнюю точки
-                        local lowestY = math.huge
-                        local highestY = -math.huge
-                        
-                        for _, part in pairs(model:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                local partPos = (part.CFrame * CFrame.new(0, -part.Size.Y/2, 0)).Position
-                                local partTop = (part.CFrame * CFrame.new(0, part.Size.Y/2, 0)).Position
-                                if partPos.Y < lowestY then lowestY = partPos.Y end
-                                if partTop.Y > highestY then highestY = partTop.Y end
-                            end
-                        end
-                        
-                        -- Вычисляем угол наклона, чтобы поставить ровно
-                        -- (если голова ниже ног, переворачиваем)
-                        local centerPos = model:GetPivot().Position
-                        if highestY < centerPos.Y or lowestY > centerPos.Y then
-                            model:PivotTo(model:GetPivot() * CFrame.Angles(math.rad(-90), 0, 0))
-                        end
+                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), math.rad(90), 0) * CFrame.new(0, 1.5, 0)
                     end
 
                     -- 3. Привязываем к персонажу
-                    local targetCFrame = hrp.CFrame * CFrame.new(0, 0, 0)
                     if model:IsA("Model") then
                         model:PivotTo(targetCFrame)
                     else
