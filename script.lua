@@ -8,9 +8,8 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ID СКИНОВ
+-- ID СКИНА
 local SKIN_SHAXED = 124994246147928
-local SKIN_DOGE = 5406746304 -- Buff Doge
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -431,7 +430,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ СКИНОВ
+-- ФУНКЦИЯ СКИНОВ (ТОЛЬКО SHAXED)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,25 +455,10 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- Подгоняем размер
                     if model:IsA("Model") then
-                        local _, size = model:GetBoundingBox()
-                        if size.Y > 5 then
-                            model:ScaleTo(5 / size.Y)
-                        end
-                    end
-
-                    -- Поворот (Buff Doge изначально лежит)
-                    local targetCFrame = hrp.CFrame
-                    if skinId == SKIN_DOGE then
-                        -- Поворот на +90 по X, чтобы поставить на лапы
-                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(90), 0, 0) * CFrame.new(0, 1.5, 0)
-                    end
-                    
-                    if model:IsA("Model") then
-                        model:PivotTo(targetCFrame)
+                        model:PivotTo(hrp.CFrame)
                     else
-                        model.CFrame = targetCFrame
+                        model.CFrame = hrp.CFrame
                     end
                     
                     model.Parent = char
@@ -1146,23 +1130,6 @@ SkinShaxedBtn.MouseButton1Click:Connect(function()
     toggleCustomSkin(SKIN_SHAXED)
 end)
 
-local SkinDogeBtn = Instance.new("TextButton")
-SkinDogeBtn.BackgroundColor3 = Theme.BtnOff
-SkinDogeBtn.BackgroundTransparency = 0.4
-SkinDogeBtn.Size = UDim2.new(1, 0, 0, 36)
-SkinDogeBtn.Font = Enum.Font.GothamBold
-SkinDogeBtn.Text = "SKIN: Sobaka Za Yaitsa Kysaka"
-SkinDogeBtn.TextColor3 = Theme.TextColor
-SkinDogeBtn.TextSize = 10
-SkinDogeBtn.LayoutOrder = 2
-SkinDogeBtn.ZIndex = 4
-SkinDogeBtn.Parent = AvatarTab
-Instance.new("UICorner", SkinDogeBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = SkinDogeBtn, stroke = nil, isTab = false})
-SkinDogeBtn.MouseButton1Click:Connect(function()
-    toggleCustomSkin(SKIN_DOGE)
-end)
-
 local ResetSkinBtn = Instance.new("TextButton")
 ResetSkinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
 ResetSkinBtn.BackgroundTransparency = 0.4
@@ -1171,7 +1138,7 @@ ResetSkinBtn.Font = Enum.Font.GothamBold
 ResetSkinBtn.Text = "RESET SKIN"
 ResetSkinBtn.TextColor3 = Theme.TextColor
 ResetSkinBtn.TextSize = 12
-ResetSkinBtn.LayoutOrder = 3
+ResetSkinBtn.LayoutOrder = 2
 ResetSkinBtn.ZIndex = 4
 ResetSkinBtn.Parent = AvatarTab
 Instance.new("UICorner", ResetSkinBtn).CornerRadius = UDim.new(0, 8)
@@ -1187,7 +1154,7 @@ SkinInfo.Font = Enum.Font.GothamBold
 SkinInfo.Text = "Выберите скин."
 SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
 SkinInfo.TextSize = 11
-SkinInfo.LayoutOrder = 4
+SkinInfo.LayoutOrder = 3
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
