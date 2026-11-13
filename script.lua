@@ -9,8 +9,8 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
-local SKIN_SHAXED = 124994246147928 -- Старый скин
-local SKIN_VERITY = 116278174762465 -- Новый скин
+local SKIN_SHAXED = 124994246147928
+local SKIN_VERITY = 116278174762465
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (Shaxed работает как раньше, Verity с проверкой)
+-- ЕДИНАЯ ФУНКЦИЯ СКИНОВ (БЕЗ ПРОВЕРОК)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,56 +456,17 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    if skinId == SKIN_SHAXED then
-                        -- Для Shaxed: просто привязываем 1 в 1 (как было)
-                        model:PivotTo(hrp.CFrame)
-                        model.Parent = char
-                        for _, part in pairs(model:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = false
-                                part.Massless = true
-                                local weld = Instance.new("WeldConstraint")
-                                weld.Part0 = hrp
-                                weld.Part1 = part
-                                weld.Parent = part
-                            end
-                        end
-                    else
-                        -- Для остальных (Verity): проверяем, персонаж это или предмет
-                        local isCharacterModel = false
-                        if model:IsA("Model") then
-                            local hum = model:FindFirstChildOfClass("Humanoid")
-                            local head = model:FindFirstChild("Head")
-                            if hum and head then isCharacterModel = true end
-                        end
-                        
-                        if isCharacterModel then
-                            -- Персонаж
-                            model:PivotTo(hrp.CFrame)
-                            model.Parent = char
-                            for _, part in pairs(model:GetDescendants()) do
-                                if part:IsA("BasePart") then
-                                    part.CanCollide = false
-                                    part.Massless = true
-                                    local weld = Instance.new("WeldConstraint")
-                                    weld.Part0 = hrp
-                                    weld.Part1 = part
-                                    weld.Parent = part
-                                end
-                            end
-                        else
-                            -- Предмет (меч)
-                            model.Parent = char
-                            for _, part in pairs(model:GetDescendants()) do
-                                if part:IsA("BasePart") then
-                                    part.CanCollide = false
-                                    part.Massless = true
-                                    local weld = Instance.new("WeldConstraint")
-                                    weld.Part0 = char:FindFirstChild("RightHand") or char:FindFirstChild("Torso") or hrp
-                                    weld.Part1 = part
-                                    weld.Parent = part
-                                end
-                            end
+                    -- Привязываем модель прямо к HumanoidRootPart (как у Shaxed)
+                    model:PivotTo(hrp.CFrame)
+                    model.Parent = char
+                    for _, part in pairs(model:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                            part.Massless = true
+                            local weld = Instance.new("WeldConstraint")
+                            weld.Part0 = hrp
+                            weld.Part1 = part
+                            weld.Parent = part
                         end
                     end
                 end
