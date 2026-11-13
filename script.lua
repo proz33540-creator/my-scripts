@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (С ПОВОРОТОМ ДЛЯ ZAYTS)
+-- ФУНКЦИЯ СКИНОВ (ИСПРАВЛЕННЫЙ ПОВОРОТ ДЛЯ ZAYTS)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,11 +456,11 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- ПОДГОНКА РАЗМЕРА (уменьшаем, если модель слишком большая)
+                    -- ПОДГОНКА РАЗМЕРА
                     if model:IsA("Model") then
                         local _, size = model:GetBoundingBox()
-                        if size.Y > 5 then -- Если модель выше 5 стадов, значит она гигантская
-                            local scaleFactor = 5 / size.Y -- Подгоняем под рост ~5 стадов
+                        if size.Y > 5 then
+                            local scaleFactor = 5 / size.Y
                             model:ScaleTo(scaleFactor)
                         end
                     elseif model:IsA("BasePart") then
@@ -470,10 +470,11 @@ local function toggleCustomSkin(skinId)
                         end
                     end
                     
-                    -- ПОВОРОТ ДЛЯ ZAYTS (на 90 градусов вправо)
+                    -- ПОВОРОТ И ПОДЪЕМ ДЛЯ ZAYTS
                     local targetCFrame = hrp.CFrame
                     if skinId == SKIN_ZAYTS then
-                        targetCFrame = hrp.CFrame * CFrame.Angles(0, math.rad(90), 0)
+                        -- Поворот на -90 по X (чтобы голова смотрела вперед) и подъем на 1.5 стада
+                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), 0, 0) * CFrame.new(0, 1.5, 0)
                     end
                     
                     if model:IsA("Model") then
