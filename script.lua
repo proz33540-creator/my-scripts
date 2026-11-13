@@ -430,7 +430,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ СКИНОВ (ТОЛЬКО SHAXED)
+-- ФУНКЦИЯ СКИНОВ
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -440,7 +440,6 @@ local function toggleCustomSkin(skinId)
     if skinId ~= 0 then
         states.skin_active = true
         
-        -- Прячем родное тело
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -476,7 +475,6 @@ local function toggleCustomSkin(skinId)
             end
         end)
     else
-        -- Сброс скина
         if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
@@ -697,6 +695,7 @@ local function CreateButton(parent, name, displayName, order, onClick)
     return btn
 end
 
+-- ОСНОВНЫЕ КНОПКИ (Main)
 CreateButton(MainTab, "fly", "FLY", 1, function() if states.fly then startFly() else stopFly() end end)
 CreateButton(MainTab, "noclip", "NOCLIP (WALLS)", 2, function() if states.noclip then startNoclip() else stopNoclip() end end)
 CreateButton(MainTab, "autofarm", "AUTO FARM (SMOOTH)", 3, function() if states.autofarm then startAutoFarm() else stopAutoFarm() end end)
