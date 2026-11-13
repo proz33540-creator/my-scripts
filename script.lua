@@ -352,12 +352,12 @@ local function CreateTab(name, order)
 end
 
 local MainTab = CreateTab("Main", 1)
-local PlayerTab = CreateTab("Player", 2)
+local PlayerTab = CreateTab("Player", 2) -- ПЕРЕИМЕНОВАНО
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
-local NeOtrivatTab = CreateTab("НЕ ОТКРЫВАТЬ", 7) -- ИМЯ ВКЛАДКИ
+local NeOtrivatTab = CreateTab("НЕ ОТКРЫВАТЬ", 7)
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, skin_active = false }
