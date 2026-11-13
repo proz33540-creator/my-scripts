@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ СКИНОВ (ЖЕСТКИЙ ПОВОРОТ ДЕТАЛЕЙ)
+-- ФУНКЦИЯ СКИНОВ (АВТОМАТИЧЕСКОЕ ВЫРАВНИВАНИЕ)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,7 +456,7 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- 1. Сначала подгоняем размер
+                    -- 1. Подгоняем размер
                     if model:IsA("Model") then
                         local _, size = model:GetBoundingBox()
                         if size.Y > 5 then
@@ -464,14 +464,26 @@ local function toggleCustomSkin(skinId)
                         end
                     end
 
-                    -- 2. ЖЕСТКИЙ ПОВОРОТ ВСЕХ ДЕТАЛЕЙ (чтобы он встал на ноги)
+                    -- 2. АВТОМАТИЧЕСКОЕ ВЫРАВНИВАНИЕ (ставим на ноги)
                     if skinId == SKIN_ZAYTS then
-                        local pivot = model:GetPivot()
+                        -- Находим самую нижнюю и самую верхнюю точки
+                        local lowestY = math.huge
+                        local highestY = -math.huge
+                        
                         for _, part in pairs(model:GetDescendants()) do
                             if part:IsA("BasePart") then
-                                -- Вращаем каждую деталь на -90 градусов по X относительно её текущего положения
-                                part.CFrame = part.CFrame * CFrame.Angles(math.rad(-90), 0, 0)
+                                local partPos = (part.CFrame * CFrame.new(0, -part.Size.Y/2, 0)).Position
+                                local partTop = (part.CFrame * CFrame.new(0, part.Size.Y/2, 0)).Position
+                                if partPos.Y < lowestY then lowestY = partPos.Y end
+                                if partTop.Y > highestY then highestY = partTop.Y end
                             end
+                        end
+                        
+                        -- Вычисляем угол наклона, чтобы поставить ровно
+                        -- (если голова ниже ног, переворачиваем)
+                        local centerPos = model:GetPivot().Position
+                        if highestY < centerPos.Y or lowestY > centerPos.Y then
+                            model:PivotTo(model:GetPivot() * CFrame.Angles(math.rad(-90), 0, 0))
                         end
                     end
 
