@@ -892,7 +892,7 @@ end)
 -- ВКЛАДКА MUSIC (С ТВОИМ ID)
 local musicPlayer = Instance.new("Sound")
 musicPlayer.Name = "HubMusic"
-musicPlayer.Parent = SoundService
+musicPlayer.Parent = workspace -- Перенес в workspace, чтобы звук точно был слышен
 musicPlayer.Volume = 0.5
 musicPlayer.Looped = false
 
