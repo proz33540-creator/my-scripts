@@ -708,26 +708,529 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     end 
 end)
 
--- НОВАЯ КНОПКА NE OTRIVAT (КРАШ)
-local CrashBtn = Instance.new("TextButton")
-CrashBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-CrashBtn.BackgroundTransparency = 0.4
-CrashBtn.Size = UDim2.new(1, 0, 0, 36)
-CrashBtn.Font = Enum.Font.GothamBold
-CrashBtn.Text = "NE OTRIVAT (CRASH)"
-CrashBtn.TextColor3 = Theme.TextColor
-CrashBtn.TextSize = 12
-CrashBtn.LayoutOrder = 5
-CrashBtn.ZIndex = 4
-CrashBtn.Parent = MainTab
-Instance.new("UICorner", CrashBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = CrashBtn, stroke = nil, isTab = false})
+local FovBgMain = Instance.new("Frame")
+FovBgMain.BackgroundColor3 = Theme.BtnOff
+FovBgMain.BackgroundTransparency = 0.4
+FovBgMain.Size = UDim2.new(1, 0, 0, 34)
+FovBgMain.LayoutOrder = 5
+FovBgMain.ZIndex = 4
+FovBgMain.Parent = MainTab
+Instance.new("UICorner", FovBgMain).CornerRadius = UDim.new(0, 8)
+local FovBgStroke = Instance.new("UIStroke", FovBgMain)
+FovBgStroke.Color = Theme.Accent
+FovBgStroke.Thickness = 1
+FovBgStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = FovBgMain, stroke = FovBgStroke, isTab = false})
 
-CrashBtn.MouseButton1Click:Connect(function()
-    -- Закрываем игру (выкидываем)
-    LocalPlayer:Kick("NE OTRIVAT")
+local FovSliderMain = Instance.new("TextButton")
+FovSliderMain.BackgroundColor3 = Theme.Accent
+FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0) 
+FovSliderMain.Text = "Camera FOV: 70"
+FovSliderMain.Font = Enum.Font.GothamBold
+FovSliderMain.TextColor3 = Theme.TextColor
+FovSliderMain.TextSize = 11
+FovSliderMain.ZIndex = 4
+FovSliderMain.Parent = FovBgMain
+Instance.new("UICorner", FovSliderMain).CornerRadius = UDim.new(0, 8)
+
+local draggingFovMain = false
+FovSliderMain.MouseButton1Down:Connect(function() draggingFovMain = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFovMain = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingFovMain then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = FovBgMain.AbsolutePosition.X; local frameSize = FovBgMain.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0, 1)
+        FovSliderMain.Size = UDim2.new(relativeX, 0, 1, 0)
+        local camFov = math.floor(30 + (relativeX * 90))
+        FovSliderMain.Text = "Camera FOV: " .. camFov
+        Camera.FieldOfView = camFov
+    end
 end)
 
-local FovBgMain = Instance.new("Frame")
--- ... (дальше идет старый код со слайдером FovBgMain и т.д.)
--- Я не менял остальной код, так как ты просил только добавить кнопку
+local GrabGunBtn = Instance.new("TextButton")
+GrabGunBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+GrabGunBtn.BackgroundTransparency = 0.4
+GrabGunBtn.Size = UDim2.new(1, 0, 0, 34)
+GrabGunBtn.Font = Enum.Font.GothamBold
+GrabGunBtn.Text = "GRAB GUN NOW"
+GrabGunBtn.TextColor3 = Theme.TextColor
+GrabGunBtn.TextSize = 12
+GrabGunBtn.LayoutOrder = 6
+GrabGunBtn.ZIndex = 4
+GrabGunBtn.Parent = MainTab
+Instance.new("UICorner", GrabGunBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = GrabGunBtn, stroke = nil, isTab = false})
+GrabGunBtn.MouseButton1Click:Connect(function() grabGun() end)
+
+local StopBtn = Instance.new("TextButton")
+StopBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+StopBtn.BackgroundTransparency = 0.4
+StopBtn.Size = UDim2.new(1, 0, 0, 36)
+StopBtn.Font = Enum.Font.GothamBold
+StopBtn.Text = "STOP ALL"
+StopBtn.TextColor3 = Theme.TextColor
+StopBtn.LayoutOrder = 7
+StopBtn.ZIndex = 4
+StopBtn.Parent = MainTab
+Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = StopBtn, stroke = nil, isTab = false})
+StopBtn.MouseButton1Click:Connect(function()
+    stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
+    states.hitbox = false; toggleCustomSkin(0);
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.WalkSpeed = 16; hum.JumpPower = 50; hum.UseJumpPower = true end
+    ColorCorrection.Enabled = false; states.purple_filter = false;
+    FilterBtn.Text = "FILTER: OFF"; FilterBtn.BackgroundColor3 = Theme.BtnOff;
+    Camera.FieldOfView = 70; FovSliderMain.Text = "Camera FOV: 70"; FovSliderMain.Size = UDim2.new(0.5, 0, 1, 0);
+    for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
+end)
+
+-- ВКЛАДКА PLAYER
+local SpeedBg = Instance.new("Frame")
+SpeedBg.BackgroundColor3 = Theme.BtnOff
+SpeedBg.BackgroundTransparency = 0.4
+SpeedBg.Size = UDim2.new(1, 0, 0, 34)
+SpeedBg.LayoutOrder = 1
+SpeedBg.ZIndex = 4
+SpeedBg.Parent = PlayerTab
+Instance.new("UICorner", SpeedBg).CornerRadius = UDim.new(0, 8)
+local SpeedStroke = Instance.new("UIStroke", SpeedBg)
+SpeedStroke.Color = Theme.Accent
+SpeedStroke.Thickness = 1
+SpeedStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = SpeedBg, stroke = SpeedStroke, isTab = false})
+
+local SpeedSlider = Instance.new("TextButton")
+SpeedSlider.BackgroundColor3 = Theme.Accent
+SpeedSlider.Size = UDim2.new(0.2, 0, 1, 0) 
+SpeedSlider.Text = "Speed: 16"
+SpeedSlider.Font = Enum.Font.GothamBold
+SpeedSlider.TextColor3 = Theme.TextColor
+SpeedSlider.TextSize = 11
+SpeedSlider.ZIndex = 4
+SpeedSlider.Parent = SpeedBg
+Instance.new("UICorner", SpeedSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingSpeed = false
+SpeedSlider.MouseButton1Down:Connect(function() draggingSpeed = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingSpeed = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingSpeed then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = SpeedBg.AbsolutePosition.X; local frameSize = SpeedBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.05, 1)
+        SpeedSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        local ws = math.floor(16 + (relativeX * 234))
+        SpeedSlider.Text = "Speed: " .. ws
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = ws end
+    end
+end)
+
+local JumpBg = Instance.new("Frame")
+JumpBg.BackgroundColor3 = Theme.BtnOff
+JumpBg.BackgroundTransparency = 0.4
+JumpBg.Size = UDim2.new(1, 0, 0, 34)
+JumpBg.LayoutOrder = 2
+JumpBg.ZIndex = 4
+JumpBg.Parent = PlayerTab
+Instance.new("UICorner", JumpBg).CornerRadius = UDim.new(0, 8)
+local JumpStroke = Instance.new("UIStroke", JumpBg)
+JumpStroke.Color = Theme.Accent
+JumpStroke.Thickness = 1
+JumpStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = JumpBg, stroke = JumpStroke, isTab = false})
+
+local JumpSlider = Instance.new("TextButton")
+JumpSlider.BackgroundColor3 = Theme.Accent
+JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
+JumpSlider.Text = "Jump: 50"
+JumpSlider.Font = Enum.Font.GothamBold
+JumpSlider.TextColor3 = Theme.TextColor
+JumpSlider.TextSize = 11
+JumpSlider.ZIndex = 4
+JumpSlider.Parent = JumpBg
+Instance.new("UICorner", JumpSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingJump = false
+JumpSlider.MouseButton1Down:Connect(function() draggingJump = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingJump = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingJump then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = JumpBg.AbsolutePosition.X; local frameSize = JumpBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.05, 1)
+        JumpSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        local jp = math.floor(50 + (relativeX * 450))
+        JumpSlider.Text = "Jump: " .. jp
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.JumpPower = jp
+            hum.UseJumpPower = true
+        end
+    end
+end)
+
+local ResetPlayerBtn = Instance.new("TextButton")
+ResetPlayerBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+ResetPlayerBtn.BackgroundTransparency = 0.4
+ResetPlayerBtn.Size = UDim2.new(1, 0, 0, 36)
+ResetPlayerBtn.Font = Enum.Font.GothamBold
+ResetPlayerBtn.Text = "RESET STATS"
+ResetPlayerBtn.TextColor3 = Theme.TextColor
+ResetPlayerBtn.LayoutOrder = 3
+ResetPlayerBtn.ZIndex = 4
+ResetPlayerBtn.Parent = PlayerTab
+Instance.new("UICorner", ResetPlayerBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = ResetPlayerBtn, stroke = nil, isTab = false})
+ResetPlayerBtn.MouseButton1Click:Connect(function()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = 16
+        hum.JumpPower = 50
+        hum.UseJumpPower = true
+    end
+    SpeedSlider.Size = UDim2.new(0.2, 0, 1, 0)
+    SpeedSlider.Text = "Speed: 16"
+    JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
+    JumpSlider.Text = "Jump: 50"
+end)
+
+-- ВКЛАДКА TARGET
+local SelectTargetBtn = Instance.new("TextButton"); 
+SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
+SelectTargetBtn.BackgroundTransparency = 0.4
+SelectTargetBtn.Size = UDim2.new(1, 0, 0, 34); 
+SelectTargetBtn.Font = Enum.Font.GothamBold; 
+SelectTargetBtn.Text = "Target: None"; 
+SelectTargetBtn.TextColor3 = Theme.TextColor; 
+SelectTargetBtn.LayoutOrder = 1; 
+SelectTargetBtn.ZIndex = 4
+SelectTargetBtn.Parent = TargetTab
+Instance.new("UICorner", SelectTargetBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SelectTargetBtn, stroke = nil, isTab = false})
+
+local PlayerListScroll = Instance.new("ScrollingFrame")
+PlayerListScroll.BackgroundColor3 = Theme.BtnOff
+PlayerListScroll.BackgroundTransparency = 0.4
+PlayerListScroll.Size = UDim2.new(1, 0, 0, 100)
+PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerListScroll.ScrollBarThickness = 3
+PlayerListScroll.ScrollBarImageColor3 = Theme.Accent
+PlayerListScroll.LayoutOrder = 2
+PlayerListScroll.Visible = false
+PlayerListScroll.ZIndex = 4
+PlayerListScroll.Parent = TargetTab
+Instance.new("UICorner", PlayerListScroll).CornerRadius = UDim.new(0, 8)
+Instance.new("UIListLayout", PlayerListScroll).Padding = UDim.new(0, 3)
+
+local function refreshPlayerList()
+    for _, child in ipairs(PlayerListScroll:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    local count = 0
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            count = count + 1
+            local pBtn = Instance.new("TextButton")
+            pBtn.BackgroundColor3 = Theme.Main
+            pBtn.BackgroundTransparency = 0.4
+            pBtn.Size = UDim2.new(1, -4, 0, 28)
+            pBtn.Font = Enum.Font.GothamBold
+            pBtn.Text = p.Name
+            pBtn.TextColor3 = Theme.TextColor
+            pBtn.TextSize = 11
+            pBtn.ZIndex = 5
+            pBtn.Parent = PlayerListScroll
+            Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 4)
+            pBtn.MouseButton1Click:Connect(function()
+                selectedTarget = p
+                SelectTargetBtn.Text = "Target: " .. p.Name
+                PlayerListScroll.Visible = false
+            end)
+        end
+    end
+    PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, count * 32)
+end
+
+refreshPlayerList()
+Players.PlayerAdded:Connect(refreshPlayerList)
+Players.PlayerRemoving:Connect(refreshPlayerList)
+
+SelectTargetBtn.MouseButton1Click:Connect(function()
+    PlayerListScroll.Visible = not PlayerListScroll.Visible
+    if PlayerListScroll.Visible then refreshPlayerList() end
+end)
+
+local TpToTargetBtn = Instance.new("TextButton"); TpToTargetBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); TpToTargetBtn.BackgroundTransparency = 0.4; TpToTargetBtn.Size = UDim2.new(1, 0, 0, 34); TpToTargetBtn.Font = Enum.Font.GothamBold; TpToTargetBtn.Text = "ТП К ЦЕЛИ"; TpToTargetBtn.TextColor3 = Theme.TextColor; TpToTargetBtn.LayoutOrder = 3; TpToTargetBtn.ZIndex = 4; TpToTargetBtn.Parent = TargetTab
+Instance.new("UICorner", TpToTargetBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = TpToTargetBtn, stroke = nil, isTab = false})
+TpToTargetBtn.MouseButton1Click:Connect(function() if selectedTarget and selectedTarget.Character then LocalPlayer.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,2) end end)
+
+CreateButton(TargetTab, "aimbot", "AIMBOT (LOCK)", 4, function() 
+    FovCircle.Visible = states.aimbot
+    if states.aimbot then
+        SaveConnection(RunService.RenderStepped:Connect(function()
+            if not states.aimbot then return end
+            local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+            local closest = nil
+            local minDist = aimbotFov / 2
+            local currentPing = 0
+            pcall(function() currentPing = Stats.Network.ServerStatsItem["Data Ping"]:GetValue() / 1000 end)
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                    local hasKnife = (p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife"))
+                    if hasKnife then
+                        local headPos, onScreen = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                        if onScreen then
+                            local dist = (Vector2.new(headPos.X, headPos.Y) - screenCenter).Magnitude
+                            if dist < minDist then
+                                minDist = dist
+                                closest = p
+                            end
+                        end
+                    end
+                end
+            end
+            if closest then
+                local head = closest.Character:FindFirstChild("Head")
+                if head then
+                    local predPos = head.Position + (head.AssemblyLinearVelocity * currentPing)
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.lookAt(Camera.CFrame.Position, predPos), 0.5)
+                end
+            end
+        end))
+    end
+end)
+
+local AimFovBg = Instance.new("Frame"); 
+AimFovBg.BackgroundColor3 = Theme.BtnOff; 
+AimFovBg.BackgroundTransparency = 0.4
+AimFovBg.Size = UDim2.new(1, 0, 0, 34); 
+AimFovBg.LayoutOrder = 5; 
+AimFovBg.ZIndex = 4
+AimFovBg.Parent = TargetTab
+Instance.new("UICorner", AimFovBg).CornerRadius = UDim.new(0, 8)
+local AimFovStroke = Instance.new("UIStroke", AimFovBg)
+AimFovStroke.Color = Theme.Accent
+AimFovStroke.Thickness = 1
+AimFovStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = AimFovBg, stroke = AimFovStroke, isTab = false})
+
+local AimFovSlider = Instance.new("TextButton"); 
+AimFovSlider.BackgroundColor3 = Theme.Accent; 
+AimFovSlider.Size = UDim2.new(0.6, 0, 1, 0); 
+AimFovSlider.Text = "Aimbot FOV: 300"; 
+AimFovSlider.Font = Enum.Font.GothamBold; 
+AimFovSlider.TextColor3 = Theme.TextColor; 
+AimFovSlider.TextSize = 10; 
+AimFovSlider.ZIndex = 4
+AimFovSlider.Parent = AimFovBg
+Instance.new("UICorner", AimFovSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingAimFov = false
+AimFovSlider.MouseButton1Down:Connect(function() draggingAimFov = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingAimFov = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingAimFov then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = AimFovBg.AbsolutePosition.X; local frameSize = AimFovBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0.1, 1)
+        AimFovSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        aimbotFov = math.floor(relativeX * 500) + 50
+        AimFovSlider.Text = "Aimbot FOV: " .. aimbotFov
+        FovCircle.Size = UDim2.new(0, aimbotFov, 0, aimbotFov)
+        FovCircle.Position = UDim2.new(0.5, -aimbotFov/2, 0.5, -aimbotFov/2)
+    end
+end)
+
+local HitboxBtn = Instance.new("TextButton")
+HitboxBtn.BackgroundColor3 = Theme.BtnOff
+HitboxBtn.BackgroundTransparency = 0.4
+HitboxBtn.Size = UDim2.new(1, 0, 0, 36)
+HitboxBtn.Font = Enum.Font.GothamBold
+HitboxBtn.Text = "HITBOX EXPANDER: OFF"
+HitboxBtn.TextColor3 = Theme.TextColor
+HitboxBtn.TextSize = 12
+HitboxBtn.LayoutOrder = 6
+HitboxBtn.ZIndex = 4
+HitboxBtn.Parent = TargetTab
+Instance.new("UICorner", HitboxBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = HitboxBtn, stroke = nil, isTab = false})
+
+HitboxBtn.MouseButton1Click:Connect(function()
+    states.hitbox = not states.hitbox
+    HitboxBtn.Text = "HITBOX EXPANDER: " .. (states.hitbox and "ON" or "OFF")
+    HitboxBtn.BackgroundColor3 = states.hitbox and Theme.BtnOn or Theme.BtnOff
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and states.hitbox then
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if tool and tool.Name == "Knife" then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local tHum = p.Character:FindFirstChildOfClass("Humanoid")
+                    if tHum and tHum.Health > 0 then
+                        local oldCFrame = char.HumanoidRootPart.CFrame
+                        char.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+                        task.wait(0.05)
+                        pcall(function() tool:Activate() end)
+                        task.wait(0.05)
+                        char.HumanoidRootPart.CFrame = oldCFrame
+                    end
+                end
+            end
+        end
+    end
+end)
+
+local FilterBtn = Instance.new("TextButton")
+FilterBtn.BackgroundColor3 = Theme.BtnOff
+FilterBtn.BackgroundTransparency = 0.4
+FilterBtn.Size = UDim2.new(1, 0, 0, 34)
+FilterBtn.Font = Enum.Font.GothamBold
+FilterBtn.Text = "FILTER: OFF"
+FilterBtn.TextColor3 = Theme.TextColor
+FilterBtn.TextSize = 12
+FilterBtn.LayoutOrder = 1
+FilterBtn.ZIndex = 4
+FilterBtn.Parent = FilterTab
+Instance.new("UICorner", FilterBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = FilterBtn, stroke = nil, isTab = false})
+FilterBtn.MouseButton1Click:Connect(function()
+    states.purple_filter = not states.purple_filter
+    FilterBtn.Text = "FILTER: " .. (states.purple_filter and "ON" or "OFF")
+    FilterBtn.BackgroundColor3 = states.purple_filter and Theme.BtnOn or Theme.BtnOff
+    ColorCorrection.Enabled = states.purple_filter
+end)
+
+-- АВАТАР
+local SkinShaxedBtn = Instance.new("TextButton")
+SkinShaxedBtn.BackgroundColor3 = Theme.BtnOff
+SkinShaxedBtn.BackgroundTransparency = 0.4
+SkinShaxedBtn.Size = UDim2.new(1, 0, 0, 36)
+SkinShaxedBtn.Font = Enum.Font.GothamBold
+SkinShaxedBtn.Text = "SKIN: Shaxed"
+SkinShaxedBtn.TextColor3 = Theme.TextColor
+SkinShaxedBtn.TextSize = 12
+SkinShaxedBtn.LayoutOrder = 1
+SkinShaxedBtn.ZIndex = 4
+SkinShaxedBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinShaxedBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SkinShaxedBtn, stroke = nil, isTab = false})
+SkinShaxedBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(SKIN_SHAXED)
+end)
+
+local ResetSkinBtn = Instance.new("TextButton")
+ResetSkinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+ResetSkinBtn.BackgroundTransparency = 0.4
+ResetSkinBtn.Size = UDim2.new(1, 0, 0, 36)
+ResetSkinBtn.Font = Enum.Font.GothamBold
+ResetSkinBtn.Text = "RESET SKIN"
+ResetSkinBtn.TextColor3 = Theme.TextColor
+ResetSkinBtn.TextSize = 12
+ResetSkinBtn.LayoutOrder = 2
+ResetSkinBtn.ZIndex = 4
+ResetSkinBtn.Parent = AvatarTab
+Instance.new("UICorner", ResetSkinBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = ResetSkinBtn, stroke = nil, isTab = false})
+ResetSkinBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(0)
+end)
+
+local SkinInfo = Instance.new("TextLabel")
+SkinInfo.BackgroundTransparency = 1
+SkinInfo.Size = UDim2.new(1, 0, 0, 30)
+SkinInfo.Font = Enum.Font.GothamBold
+SkinInfo.Text = "Выберите скин."
+SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
+SkinInfo.TextSize = 11
+SkinInfo.LayoutOrder = 3
+SkinInfo.ZIndex = 4
+SkinInfo.Parent = AvatarTab
+
+-- ТЕМА (ФОНЫ)
+local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, order)
+    local btn = Instance.new("TextButton")
+    btn.BackgroundColor3 = Theme.BtnOff
+    btn.BackgroundTransparency = 0.4
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.TextColor3 = Theme.TextColor
+    btn.TextSize = 12
+    btn.LayoutOrder = order
+    btn.ZIndex = 4
+    btn.Parent = ThemeTab
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    
+    local stroke = Instance.new("UIStroke", btn)
+    stroke.Color = Theme.Accent
+    stroke.Thickness = 1
+    stroke.Transparency = 0.8
+    
+    table.insert(AllButtons, {btn = btn, stroke = stroke, isTab = false})
+    
+    btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
+    
+    btn.MouseButton1Click:Connect(function()
+        changeTheme(bgId, accent, accentDark, btnOn, textColor, activeTextColor)
+    end)
+end
+
+CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
+CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
+        if MainFrame.Visible then
+            MainFrame.Visible = false; MinimizedFrame.Visible = true; MinimizedFrame.Position = MainFrame.Position
+        else
+            MainFrame.Visible = true; MinimizedFrame.Visible = false; MainFrame.Position = MinimizedFrame.Position
+        end
+    end
+end)
+
+Tabs["Main"].btn.BackgroundColor3 = Theme.BtnOn
+Tabs["Main"].btn.TextColor3 = Theme.ActiveTextColor
+Tabs["Main"].frame.Visible = true
+
+task.spawn(function()
+    while task.wait(1) do
+        if states.esp then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    if not espObjects[p] then createESP(p) end
+                else
+                    removeESP(p)
+                end
+            end
+        end
+    end
+end)
+
+SaveConnection(RunService.Heartbeat:Connect(function()
+    if not states.esp then return end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and espObjects[p] then
+            local c = getPlayerColor(p)
+            for _, o in pairs(espObjects[p]) do
+                if o:IsA("Highlight") then o.FillColor = c; o.OutlineColor = c
+                elseif o:IsA("BillboardGui") and o:FindFirstChild("TextLabel") then o.TextLabel.TextColor3 = c end
+            end
+        end
+    end
+end))
+
+for _, p in pairs(Players:GetPlayers()) do createESP(p) end
