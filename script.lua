@@ -9,8 +9,8 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
-local SKIN_SHAXED = 124994246147928 -- Модель персонажа
-local SKIN_VERITY = 116278174762465 -- Возможно, меч или модель
+local SKIN_SHAXED = 124994246147928 -- Старый скин
+local SKIN_VERITY = 116278174762465 -- Новый скин
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- УМНАЯ ФУНКЦИЯ СКИНОВ (как Shaxed, так и Verity)
+-- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (Shaxed работает как раньше, Verity с проверкой)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -441,6 +441,7 @@ local function toggleCustomSkin(skinId)
     if skinId ~= 0 then
         states.skin_active = true
         
+        -- Прячем родное тело
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -455,15 +456,8 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    local isCharacterModel = false
-                    if model:IsA("Model") then
-                        local hum = model:FindFirstChildOfClass("Humanoid")
-                        local head = model:FindFirstChild("Head")
-                        if hum and head then isCharacterModel = true end
-                    end
-                    
-                    if isCharacterModel then
-                        -- Если это персонаж (как Shaxed)
+                    if skinId == SKIN_SHAXED then
+                        -- Для Shaxed: просто привязываем 1 в 1 (как было)
                         model:PivotTo(hrp.CFrame)
                         model.Parent = char
                         for _, part in pairs(model:GetDescendants()) do
@@ -477,17 +471,40 @@ local function toggleCustomSkin(skinId)
                             end
                         end
                     else
-                        -- Если это предмет (как Verity - меч)
-                        model.Parent = char
-                        for _, part in pairs(model:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = false
-                                part.Massless = true
-                                local weld = Instance.new("WeldConstraint")
-                                -- Привязываем к правой руке (если есть)
-                                weld.Part0 = char:FindFirstChild("RightHand") or char:FindFirstChild("Torso") or hrp
-                                weld.Part1 = part
-                                weld.Parent = part
+                        -- Для остальных (Verity): проверяем, персонаж это или предмет
+                        local isCharacterModel = false
+                        if model:IsA("Model") then
+                            local hum = model:FindFirstChildOfClass("Humanoid")
+                            local head = model:FindFirstChild("Head")
+                            if hum and head then isCharacterModel = true end
+                        end
+                        
+                        if isCharacterModel then
+                            -- Персонаж
+                            model:PivotTo(hrp.CFrame)
+                            model.Parent = char
+                            for _, part in pairs(model:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.CanCollide = false
+                                    part.Massless = true
+                                    local weld = Instance.new("WeldConstraint")
+                                    weld.Part0 = hrp
+                                    weld.Part1 = part
+                                    weld.Parent = part
+                                end
+                            end
+                        else
+                            -- Предмет (меч)
+                            model.Parent = char
+                            for _, part in pairs(model:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.CanCollide = false
+                                    part.Massless = true
+                                    local weld = Instance.new("WeldConstraint")
+                                    weld.Part0 = char:FindFirstChild("RightHand") or char:FindFirstChild("Torso") or hrp
+                                    weld.Part1 = part
+                                    weld.Parent = part
+                                end
                             end
                         end
                     end
@@ -495,6 +512,7 @@ local function toggleCustomSkin(skinId)
             end
         end)
     else
+        -- Сброс скина
         if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
@@ -1130,7 +1148,7 @@ FilterBtn.MouseButton1Click:Connect(function()
     ColorCorrection.Enabled = states.purple_filter
 end)
 
--- АВАТАР (УМНЫЙ ВЫБОР СКИНОВ)
+-- АВАТАР
 local SkinShaxedBtn = Instance.new("TextButton")
 SkinShaxedBtn.BackgroundColor3 = Theme.BtnOff
 SkinShaxedBtn.BackgroundTransparency = 0.4
