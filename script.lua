@@ -357,7 +357,7 @@ local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
-local NeOtrivatTab = CreateTab("НЕ ОТКРЫВАТЬ", 7) -- НОВАЯ ВКЛАДКА
+local NeOtrivatTab = CreateTab("НЕ ОТКРЫВАТЬ", 7) -- ИМЯ ВКЛАДКИ
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, skin_active = false }
@@ -1203,7 +1203,7 @@ CrashBtn.TextColor3 = Theme.TextColor
 CrashBtn.TextSize = 14
 CrashBtn.LayoutOrder = 1
 CrashBtn.ZIndex = 4
-CrashBtn.Parent = NeOtrivatTab -- ПРИВЯЗАНО К НОВОЙ ВКЛАДКЕ
+CrashBtn.Parent = NeOtrivatTab
 Instance.new("UICorner", CrashBtn).CornerRadius = UDim.new(0, 8)
 table.insert(AllButtons, {btn = CrashBtn, stroke = nil, isTab = false})
 
