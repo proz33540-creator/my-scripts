@@ -358,7 +358,7 @@ local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
-local NeOtrivatTab = CreateTab("NE OTRIVAT", 7) -- НОВАЯ ВКЛАДКА
+local NeOtrivatTab = CreateTab("NE OTRIVAT", 7)
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, skin_active = false }
@@ -442,7 +442,6 @@ local function toggleCustomSkin(skinId)
     if skinId ~= 0 then
         states.skin_active = true
         
-        -- Прячем родное тело
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -478,7 +477,6 @@ local function toggleCustomSkin(skinId)
             end
         end)
     else
-        -- Сброс скина
         if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
@@ -711,7 +709,7 @@ CreateButton(MainTab, "esp", "ESP PLAYERS", 4, function()
     end 
 end)
 
--- КНОПКА КРАША ВНУТРИ ВКЛАДКИ NE OTRIVAT
+-- КНОПКА ВНУТРИ ВКЛАДКИ NE OTRIVAT
 local CrashBtn = Instance.new("TextButton")
 CrashBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
 CrashBtn.BackgroundTransparency = 0.4
@@ -722,10 +720,10 @@ CrashBtn.TextColor3 = Theme.TextColor
 CrashBtn.TextSize = 14
 CrashBtn.LayoutOrder = 1
 CrashBtn.ZIndex = 4
-CrashBtn.Parent = NeOtrivatTab -- ВОТ СЮДА ПРИВЯЗАЛИ
+CrashBtn.Parent = NeOtrivatTab
 Instance.new("UICorner", CrashBtn).CornerRadius = UDim.new(0, 8)
 table.insert(AllButtons, {btn = CrashBtn, stroke = nil, isTab = false})
 
 CrashBtn.MouseButton1Click:Connect(function()
-    LocalPlayer:Kick("NE NAJIMAT")
+    LocalPlayer:Kick("Я же сказал не нажимать")
 end)
