@@ -7,9 +7,10 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local SoundService = game:GetService("SoundService")
 
-local CUSTOM_SKIN_ID = 124994246147928
+-- ID СКИНОВ
+local SKIN_SHAXED = 124994246147928 -- Старый скин
+local SKIN_VERITY = 116278174762465 -- Новый скин
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -356,11 +357,10 @@ local PlayerTab = CreateTab("Player", 2)
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
-local MusicTab = CreateTab("Music", 6)
-local ThemeTab = CreateTab("Theme", 7)
+local ThemeTab = CreateTab("Theme", 6)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin_shaxed = false, custom_skin_verity = false }
 local flySpeed = 50
 local espObjects = {}
 local selectedTarget = nil
@@ -431,11 +431,19 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
-local function toggleCustomSkin()
+-- ФУНКЦИЯ ВКЛЮЧЕНИЯ СКИНА
+local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
-    if states.custom_skin then
-        if CUSTOM_SKIN_ID == 0 then return end
+    
+    -- Выключаем оба скина перед включением нового
+    states.custom_skin_shaxed = false
+    states.custom_skin_verity = false
+    
+    if skinId ~= 0 then
+        if skinId == SKIN_SHAXED then states.custom_skin_shaxed = true
+        elseif skinId == SKIN_VERITY then states.custom_skin_verity = true end
+        
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -444,7 +452,7 @@ local function toggleCustomSkin()
             end
         end
         task.spawn(function()
-            local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. CUSTOM_SKIN_ID)[1] end)
+            local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. skinId)[1] end)
             if success and model then
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -465,6 +473,7 @@ local function toggleCustomSkin()
             end
         end)
     else
+        -- Выключить скин (вернуть стандартный вид)
         if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
@@ -889,201 +898,6 @@ ResetPlayerBtn.MouseButton1Click:Connect(function()
     JumpSlider.Text = "Jump: 50"
 end)
 
--- ВКЛАДКА MUSIC (С ТВОИМ ID)
-local musicPlayer = Instance.new("Sound")
-musicPlayer.Name = "HubMusic"
-musicPlayer.Parent = workspace -- Перенес в workspace, чтобы звук точно был слышен
-musicPlayer.Volume = 0.5
-musicPlayer.Looped = false
-
-local MyMusic = {
-    {Name = "pinkcrush - я люблю тебя так сильно", ID = 12513449020857}
-}
-local currentSongIndex = 1
-
-local SearchBox = Instance.new("TextBox")
-SearchBox.BackgroundColor3 = Theme.BtnOff
-SearchBox.BackgroundTransparency = 0.4
-SearchBox.Size = UDim2.new(1, 0, 0, 34)
-SearchBox.Font = Enum.Font.GothamBold
-SearchBox.PlaceholderText = "Поиск песни..."
-SearchBox.Text = ""
-SearchBox.TextColor3 = Theme.TextColor
-SearchBox.TextSize = 12
-SearchBox.LayoutOrder = 1
-SearchBox.ZIndex = 4
-SearchBox.Parent = MusicTab
-Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 8)
-local SearchStroke = Instance.new("UIStroke", SearchBox)
-SearchStroke.Color = Theme.Accent
-SearchStroke.Thickness = 1
-SearchStroke.Transparency = 0.8
-table.insert(AllButtons, {btn = SearchBox, stroke = SearchStroke, isTab = false})
-
-local MusicListScroll = Instance.new("ScrollingFrame")
-MusicListScroll.BackgroundColor3 = Theme.BtnOff
-MusicListScroll.BackgroundTransparency = 0.4
-MusicListScroll.Size = UDim2.new(1, 0, 0, 100)
-MusicListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-MusicListScroll.ScrollBarThickness = 3
-MusicListScroll.ScrollBarImageColor3 = Theme.Accent
-MusicListScroll.LayoutOrder = 2
-MusicListScroll.ZIndex = 4
-MusicListScroll.Parent = MusicTab
-Instance.new("UICorner", MusicListScroll).CornerRadius = UDim.new(0, 8)
-Instance.new("UIListLayout", MusicListScroll).Padding = UDim.new(0, 3)
-
-local function refreshMusicList(filter)
-    for _, child in ipairs(MusicListScroll:GetChildren()) do
-        if child:IsA("TextButton") then child:Destroy() end
-    end
-    local count = 0
-    for _, song in ipairs(MyMusic) do
-        if filter == "" or string.find(string.lower(song.Name), string.lower(filter)) then
-            count = count + 1
-            local sBtn = Instance.new("TextButton")
-            sBtn.BackgroundColor3 = Theme.Main
-            sBtn.BackgroundTransparency = 0.4
-            sBtn.Size = UDim2.new(1, -4, 0, 28)
-            sBtn.Font = Enum.Font.GothamBold
-            sBtn.Text = song.Name
-            sBtn.TextColor3 = Theme.TextColor
-            sBtn.TextSize = 11
-            sBtn.ZIndex = 5
-            sBtn.Parent = MusicListScroll
-            Instance.new("UICorner", sBtn).CornerRadius = UDim.new(0, 4)
-            sBtn.MouseButton1Click:Connect(function()
-                currentSongIndex = 1
-                for i, s in ipairs(MyMusic) do if s.Name == song.Name then currentSongIndex = i break end end
-                musicPlayer.SoundId = "rbxassetid://" .. song.ID
-                musicPlayer:Play()
-                PlayPauseBtn.Text = "PAUSE"
-            end)
-        end
-    end
-    MusicListScroll.CanvasSize = UDim2.new(0, 0, 0, count * 32)
-end
-
-SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    refreshMusicList(SearchBox.Text)
-end)
-
-refreshMusicList("")
-
-local PlayPauseBtn = Instance.new("TextButton")
-PlayPauseBtn.BackgroundColor3 = Theme.BtnOn
-PlayPauseBtn.BackgroundTransparency = 0.4
-PlayPauseBtn.Size = UDim2.new(0.3, -4, 0, 34)
-PlayPauseBtn.Font = Enum.Font.GothamBold
-PlayPauseBtn.Text = "PAUSE"
-PlayPauseBtn.TextColor3 = Theme.TextColor
-PlayPauseBtn.LayoutOrder = 3
-PlayPauseBtn.ZIndex = 4
-PlayPauseBtn.Parent = MusicTab
-Instance.new("UICorner", PlayPauseBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = PlayPauseBtn, stroke = nil, isTab = false})
-
-local PrevBtn = Instance.new("TextButton")
-PrevBtn.BackgroundColor3 = Theme.BtnOff
-PrevBtn.BackgroundTransparency = 0.4
-PrevBtn.Size = UDim2.new(0.3, -4, 0, 34)
-PrevBtn.Font = Enum.Font.GothamBold
-PrevBtn.Text = "PREV"
-PrevBtn.TextColor3 = Theme.TextColor
-PrevBtn.LayoutOrder = 4
-PrevBtn.ZIndex = 4
-PrevBtn.Parent = MusicTab
-Instance.new("UICorner", PrevBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = PrevBtn, stroke = nil, isTab = false})
-
-local NextBtn = Instance.new("TextButton")
-NextBtn.BackgroundColor3 = Theme.BtnOff
-NextBtn.BackgroundTransparency = 0.4
-NextBtn.Size = UDim2.new(0.3, -4, 0, 34)
-NextBtn.Font = Enum.Font.GothamBold
-NextBtn.Text = "NEXT"
-NextBtn.TextColor3 = Theme.TextColor
-NextBtn.LayoutOrder = 5
-NextBtn.ZIndex = 4
-NextBtn.Parent = MusicTab
-Instance.new("UICorner", NextBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = NextBtn, stroke = nil, isTab = false})
-
-local VolBg = Instance.new("Frame")
-VolBg.BackgroundColor3 = Theme.BtnOff
-VolBg.BackgroundTransparency = 0.4
-VolBg.Size = UDim2.new(1, 0, 0, 34)
-VolBg.LayoutOrder = 6
-VolBg.ZIndex = 4
-VolBg.Parent = MusicTab
-Instance.new("UICorner", VolBg).CornerRadius = UDim.new(0, 8)
-local VolStroke = Instance.new("UIStroke", VolBg)
-VolStroke.Color = Theme.Accent
-VolStroke.Thickness = 1
-VolStroke.Transparency = 0.8
-table.insert(AllButtons, {btn = VolBg, stroke = VolStroke, isTab = false})
-
-local VolSlider = Instance.new("TextButton")
-VolSlider.BackgroundColor3 = Theme.Accent
-VolSlider.Size = UDim2.new(0.5, 0, 1, 0) 
-VolSlider.Text = "Volume: 50%"
-VolSlider.Font = Enum.Font.GothamBold
-VolSlider.TextColor3 = Theme.TextColor
-VolSlider.TextSize = 11
-VolSlider.ZIndex = 4
-VolSlider.Parent = VolBg
-Instance.new("UICorner", VolSlider).CornerRadius = UDim.new(0, 8)
-
-local draggingVol = false
-VolSlider.MouseButton1Down:Connect(function() draggingVol = true end)
-UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingVol = false end end)
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingVol then
-        local mouseX = UserInputService:GetMouseLocation().X
-        local framePos = VolBg.AbsolutePosition.X; local frameSize = VolBg.AbsoluteSize.X
-        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0, 1)
-        VolSlider.Size = UDim2.new(relativeX, 0, 1, 0)
-        musicPlayer.Volume = relativeX
-        VolSlider.Text = "Volume: " .. math.floor(relativeX * 100) .. "%"
-    end
-end)
-
-PlayPauseBtn.MouseButton1Click:Connect(function()
-    if musicPlayer.IsPlaying then
-        musicPlayer:Pause()
-        PlayPauseBtn.Text = "PLAY"
-    else
-        musicPlayer:Resume()
-        PlayPauseBtn.Text = "PAUSE"
-    end
-end)
-
-PrevBtn.MouseButton1Click:Connect(function()
-    currentSongIndex = currentSongIndex - 1
-    if currentSongIndex < 1 then currentSongIndex = #MyMusic end
-    local song = MyMusic[currentSongIndex]
-    musicPlayer.SoundId = "rbxassetid://" .. song.ID
-    musicPlayer:Play()
-    PlayPauseBtn.Text = "PAUSE"
-end)
-
-NextBtn.MouseButton1Click:Connect(function()
-    currentSongIndex = currentSongIndex + 1
-    if currentSongIndex > #MyMusic then currentSongIndex = 1 end
-    local song = MyMusic[currentSongIndex]
-    musicPlayer.SoundId = "rbxassetid://" .. song.ID
-    musicPlayer:Play()
-    PlayPauseBtn.Text = "PAUSE"
-end)
-
-musicPlayer.Ended:Connect(function()
-    currentSongIndex = currentSongIndex + 1
-    if currentSongIndex > #MyMusic then currentSongIndex = 1 end
-    local song = MyMusic[currentSongIndex]
-    musicPlayer.SoundId = "rbxassetid://" .. song.ID
-    musicPlayer:Play()
-end)
-
 -- ВКЛАДКА TARGET
 local SelectTargetBtn = Instance.new("TextButton"); 
 SelectTargetBtn.BackgroundColor3 = Theme.BtnOff; 
@@ -1295,35 +1109,66 @@ FilterBtn.MouseButton1Click:Connect(function()
     ColorCorrection.Enabled = states.purple_filter
 end)
 
--- АВАТАР
-local SkinBtn = Instance.new("TextButton")
-SkinBtn.BackgroundColor3 = Theme.BtnOff
-SkinBtn.BackgroundTransparency = 0.4
-SkinBtn.Size = UDim2.new(1, 0, 0, 36)
-SkinBtn.Font = Enum.Font.GothamBold
-SkinBtn.Text = "CUSTOM SKIN: OFF"
-SkinBtn.TextColor3 = Theme.TextColor
-SkinBtn.TextSize = 12
-SkinBtn.LayoutOrder = 1
-SkinBtn.ZIndex = 4
-SkinBtn.Parent = AvatarTab
-Instance.new("UICorner", SkinBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = SkinBtn, stroke = nil, isTab = false})
-SkinBtn.MouseButton1Click:Connect(function()
-    states.custom_skin = not states.custom_skin
-    SkinBtn.Text = "CUSTOM SKIN: " .. (states.custom_skin and "ON" or "OFF")
-    SkinBtn.BackgroundColor3 = states.custom_skin and Theme.BtnOn or Theme.BtnOff
-    toggleCustomSkin()
+-- АВАТАР (НОВЫЕ СКИНЫ)
+local SkinShaxedBtn = Instance.new("TextButton")
+SkinShaxedBtn.BackgroundColor3 = Theme.BtnOff
+SkinShaxedBtn.BackgroundTransparency = 0.4
+SkinShaxedBtn.Size = UDim2.new(1, 0, 0, 36)
+SkinShaxedBtn.Font = Enum.Font.GothamBold
+SkinShaxedBtn.Text = "SKIN: Shaxed"
+SkinShaxedBtn.TextColor3 = Theme.TextColor
+SkinShaxedBtn.TextSize = 12
+SkinShaxedBtn.LayoutOrder = 1
+SkinShaxedBtn.ZIndex = 4
+SkinShaxedBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinShaxedBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SkinShaxedBtn, stroke = nil, isTab = false})
+SkinShaxedBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(SKIN_SHAXED)
+end)
+
+local SkinVerityBtn = Instance.new("TextButton")
+SkinVerityBtn.BackgroundColor3 = Theme.BtnOff
+SkinVerityBtn.BackgroundTransparency = 0.4
+SkinVerityBtn.Size = UDim2.new(1, 0, 0, 36)
+SkinVerityBtn.Font = Enum.Font.GothamBold
+SkinVerityBtn.Text = "SKIN: Verity"
+SkinVerityBtn.TextColor3 = Theme.TextColor
+SkinVerityBtn.TextSize = 12
+SkinVerityBtn.LayoutOrder = 2
+SkinVerityBtn.ZIndex = 4
+SkinVerityBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinVerityBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SkinVerityBtn, stroke = nil, isTab = false})
+SkinVerityBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(SKIN_VERITY)
+end)
+
+local ResetSkinBtn = Instance.new("TextButton")
+ResetSkinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+ResetSkinBtn.BackgroundTransparency = 0.4
+ResetSkinBtn.Size = UDim2.new(1, 0, 0, 36)
+ResetSkinBtn.Font = Enum.Font.GothamBold
+ResetSkinBtn.Text = "RESET SKIN"
+ResetSkinBtn.TextColor3 = Theme.TextColor
+ResetSkinBtn.TextSize = 12
+ResetSkinBtn.LayoutOrder = 3
+ResetSkinBtn.ZIndex = 4
+ResetSkinBtn.Parent = AvatarTab
+Instance.new("UICorner", ResetSkinBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = ResetSkinBtn, stroke = nil, isTab = false})
+ResetSkinBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(0)
 end)
 
 local SkinInfo = Instance.new("TextLabel")
 SkinInfo.BackgroundTransparency = 1
 SkinInfo.Size = UDim2.new(1, 0, 0, 30)
 SkinInfo.Font = Enum.Font.GothamBold
-SkinInfo.Text = "Модель применится."
+SkinInfo.Text = "Выберите скин."
 SkinInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
 SkinInfo.TextSize = 11
-SkinInfo.LayoutOrder = 2
+SkinInfo.LayoutOrder = 4
 SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
