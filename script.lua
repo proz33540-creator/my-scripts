@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ СКИНОВ (ИСПРАВЛЕННЫЙ ПОВОРОТ ДЛЯ ZAYTS)
+-- ФУНКЦИЯ СКИНОВ (ЖЕСТКИЙ ПОВОРОТ ДЕТАЛЕЙ)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,29 +456,27 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- ПОДГОНКА РАЗМЕРА
+                    -- 1. Сначала подгоняем размер
                     if model:IsA("Model") then
                         local _, size = model:GetBoundingBox()
                         if size.Y > 5 then
-                            local scaleFactor = 5 / size.Y
-                            model:ScaleTo(scaleFactor)
-                        end
-                    elseif model:IsA("BasePart") then
-                        if model.Size.Y > 5 then
-                            local scaleFactor = 5 / model.Size.Y
-                            model.Size = model.Size * scaleFactor
+                            model:ScaleTo(5 / size.Y)
                         end
                     end
-                    
-                    -- ПОВОРОТ ДЛЯ ZAYTS (Сначала ставим на ноги, затем поворот вправо)
-                    local targetCFrame = hrp.CFrame
+
+                    -- 2. ЖЕСТКИЙ ПОВОРОТ ВСЕХ ДЕТАЛЕЙ (чтобы он встал на ноги)
                     if skinId == SKIN_ZAYTS then
-                        -- 1. Поворот на -90 по X (ставим на ноги)
-                        -- 2. Поворот на 90 по Y (смотрим вправо)
-                        -- 3. Подъем на 1.5 стада
-                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), math.rad(90), 0) * CFrame.new(0, 1.5, 0)
+                        local pivot = model:GetPivot()
+                        for _, part in pairs(model:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                -- Вращаем каждую деталь на -90 градусов по X относительно её текущего положения
+                                part.CFrame = part.CFrame * CFrame.Angles(math.rad(-90), 0, 0)
+                            end
+                        end
                     end
-                    
+
+                    -- 3. Привязываем к персонажу
+                    local targetCFrame = hrp.CFrame * CFrame.new(0, 0, 0)
                     if model:IsA("Model") then
                         model:PivotTo(targetCFrame)
                     else
