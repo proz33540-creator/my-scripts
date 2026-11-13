@@ -9,8 +9,8 @@ local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
-local SKIN_SHAXED = 124994246147928 -- Старый скин
-local SKIN_VERITY = 116278174762465 -- Новый скин
+local SKIN_SHAXED = 124994246147928 -- Модель персонажа
+local SKIN_VERITY = 116278174762465 -- Возможно, это предмет (меч)
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -360,7 +360,7 @@ local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin_shaxed = false, custom_skin_verity = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, skin_active = false }
 local flySpeed = 50
 local espObjects = {}
 local selectedTarget = nil
@@ -431,19 +431,17 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ФУНКЦИЯ ВКЛЮЧЕНИЯ СКИНА
+-- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (УМНАЯ)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
     
-    -- Выключаем оба скина перед включением нового
-    states.custom_skin_shaxed = false
-    states.custom_skin_verity = false
+    states.skin_active = false
     
     if skinId ~= 0 then
-        if skinId == SKIN_SHAXED then states.custom_skin_shaxed = true
-        elseif skinId == SKIN_VERITY then states.custom_skin_verity = true end
+        states.skin_active = true
         
+        -- Прячем родное тело
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.Transparency = 1
@@ -451,29 +449,54 @@ local function toggleCustomSkin(skinId)
                 part:Destroy()
             end
         end
+        
         task.spawn(function()
             local success, model = pcall(function() return game:GetObjects("rbxassetid://" .. skinId)[1] end)
             if success and model then
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    if customSkinModel:IsA("Model") then customSkinModel:PivotTo(hrp.CFrame) else customSkinModel.CFrame = hrp.CFrame end
-                    customSkinModel.Parent = char
-                    for _, part in pairs(customSkinModel:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                            part.Massless = true
-                            local weld = Instance.new("WeldConstraint")
-                            weld.Part0 = hrp
-                            weld.Part1 = part
-                            weld.Parent = part
+                    -- Проверка: это полноценная модель (R6/R15) или просто меш?
+                    local isCharacterModel = false
+                    if model:IsA("Model") then
+                        local hum = model:FindFirstChildOfClass("Humanoid")
+                        local head = model:FindFirstChild("Head")
+                        if hum and head then isCharacterModel = true end
+                    end
+                    
+                    if isCharacterModel then
+                        -- Если это персонаж, привязываем 1 в 1
+                        model:PivotTo(hrp.CFrame)
+                        model.Parent = char
+                        for _, part in pairs(model:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                                part.Massless = true
+                                local weld = Instance.new("WeldConstraint")
+                                weld.Part0 = hrp
+                                weld.Part1 = part
+                                weld.Parent = part
+                            end
+                        end
+                    else
+                        -- Если это предмет (меч/шляпа), привязываем его к руке или торсу
+                        model.Parent = char
+                        for _, part in pairs(model:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                                part.Massless = true
+                                local weld = Instance.new("WeldConstraint")
+                                weld.Part0 = char:FindFirstChild("RightHand") or char:FindFirstChild("Torso") or hrp
+                                weld.Part1 = part
+                                weld.Parent = part
+                            end
                         end
                     end
                 end
             end
         end)
     else
-        -- Выключить скин (вернуть стандартный вид)
+        -- Сброс скина
         if customSkinModel then customSkinModel:Destroy() customSkinModel = nil end
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then part.Transparency = 0 end
@@ -774,7 +797,7 @@ Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 table.insert(AllButtons, {btn = StopBtn, stroke = nil, isTab = false})
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false;
+    states.hitbox = false; toggleCustomSkin(0);
     local char = LocalPlayer.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     if hum then hum.WalkSpeed = 16; hum.JumpPower = 50; hum.UseJumpPower = true end
@@ -1109,7 +1132,7 @@ FilterBtn.MouseButton1Click:Connect(function()
     ColorCorrection.Enabled = states.purple_filter
 end)
 
--- АВАТАР (НОВЫЕ СКИНЫ)
+-- АВАТАР (УМНЫЙ ВЫБОР СКИНОВ)
 local SkinShaxedBtn = Instance.new("TextButton")
 SkinShaxedBtn.BackgroundColor3 = Theme.BtnOff
 SkinShaxedBtn.BackgroundTransparency = 0.4
