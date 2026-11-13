@@ -10,7 +10,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
 local SKIN_SHAXED = 124994246147928
-local SKIN_VERITY = 116278174762465
+local SKIN_VERITY = 121187248571158 -- НОВЫЙ ID
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
