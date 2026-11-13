@@ -470,11 +470,13 @@ local function toggleCustomSkin(skinId)
                         end
                     end
                     
-                    -- ПОВОРОТ И ПОДЪЕМ ДЛЯ ZAYTS
+                    -- ПОВОРОТ И ПОДЪЕМ ДЛЯ ZAYTS (Стоит на ногах, повернут на 90 вправо)
                     local targetCFrame = hrp.CFrame
                     if skinId == SKIN_ZAYTS then
-                        -- Поворот на -90 по X (чтобы голова смотрела вперед) и подъем на 1.5 стада
-                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), 0, 0) * CFrame.new(0, 1.5, 0)
+                        -- 1. Поворот на -90 по X (ставим вертикально)
+                        -- 2. Поворот на 90 по Y (поворачиваем вправо)
+                        -- 3. Подъем на 1.5 стада
+                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), math.rad(90), 0) * CFrame.new(0, 1.5, 0)
                     end
                     
                     if model:IsA("Model") then
