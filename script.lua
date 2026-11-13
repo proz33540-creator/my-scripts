@@ -357,6 +357,7 @@ local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
 local ThemeTab = CreateTab("Theme", 6)
+local NeOtrivatTab = CreateTab("НЕ ОТКРЫВАТЬ", 7) -- НОВАЯ ВКЛАДКА
 
 -- ЛОГИКА
 local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, skin_active = false }
@@ -1190,6 +1191,25 @@ end
 CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
 CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
 CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
+
+-- КНОПКА ВНУТРИ ВКЛАДКИ "НЕ ОТКРЫВАТЬ"
+local CrashBtn = Instance.new("TextButton")
+CrashBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+CrashBtn.BackgroundTransparency = 0.4
+CrashBtn.Size = UDim2.new(1, 0, 0, 50)
+CrashBtn.Font = Enum.Font.GothamBold
+CrashBtn.Text = "НЕ НАЖИМАТЬ"
+CrashBtn.TextColor3 = Theme.TextColor
+CrashBtn.TextSize = 14
+CrashBtn.LayoutOrder = 1
+CrashBtn.ZIndex = 4
+CrashBtn.Parent = NeOtrivatTab -- ПРИВЯЗАНО К НОВОЙ ВКЛАДКЕ
+Instance.new("UICorner", CrashBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = CrashBtn, stroke = nil, isTab = false})
+
+CrashBtn.MouseButton1Click:Connect(function()
+    LocalPlayer:Kick("Я же сказал не нажимать")
+end)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if not gp and input.KeyCode == Enum.KeyCode.RightShift then 
