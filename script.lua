@@ -352,7 +352,7 @@ local function CreateTab(name, order)
 end
 
 local MainTab = CreateTab("Main", 1)
-local PlayerTab = CreateTab("Player", 2) -- ПЕРЕИМЕНОВАНО
+local PlayerTab = CreateTab("Player", 2) -- ЗДЕСЬ НАПИСАНО PLAYER
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
