@@ -7,6 +7,7 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local SoundService = game:GetService("SoundService")
 
 local CUSTOM_SKIN_ID = 124994246147928
 
@@ -355,10 +356,11 @@ local PlayerTab = CreateTab("Player", 2)
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
-local ThemeTab = CreateTab("Theme", 6)
+local MusicTab = CreateTab("Music", 6)
+local ThemeTab = CreateTab("Theme", 7)
 
 -- ЛОГИКА
-local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false, bunnyhop = false }
+local states = { esp = false, noclip = false, fly = false, autofarm = false, aimbot = false, hitbox = false, purple_filter = false, custom_skin = false }
 local flySpeed = 50
 local espObjects = {}
 local selectedTarget = nil
@@ -763,8 +765,7 @@ Instance.new("UICorner", StopBtn).CornerRadius = UDim.new(0, 8)
 table.insert(AllButtons, {btn = StopBtn, stroke = nil, isTab = false})
 StopBtn.MouseButton1Click:Connect(function()
     stopFly(); stopNoclip(); stopAutoFarm(); states.esp = false; states.autofarm = false; states.aimbot = false;
-    states.hitbox = false; states.bunnyhop = false;
-    if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
+    states.hitbox = false;
     local char = LocalPlayer.Character
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     if hum then hum.WalkSpeed = 16; hum.JumpPower = 50; hum.UseJumpPower = true end
@@ -774,7 +775,7 @@ StopBtn.MouseButton1Click:Connect(function()
     for p, _ in pairs(espObjects) do removeESP(p) end; FovCircle.Visible = false;
 end)
 
--- ВКЛАДКА PLAYER (WALKSPEED, JUMPPOWER & BUNNY HOP / РАСПРЫЖКА)
+-- ВКЛАДКА PLAYER
 local SpeedBg = Instance.new("Frame")
 SpeedBg.BackgroundColor3 = Theme.BtnOff
 SpeedBg.BackgroundTransparency = 0.4
@@ -811,11 +812,9 @@ UserInputService.InputChanged:Connect(function(input)
         SpeedSlider.Size = UDim2.new(relativeX, 0, 1, 0)
         local ws = math.floor(16 + (relativeX * 234))
         SpeedSlider.Text = "Speed: " .. ws
-        if not states.bunnyhop then
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hum then hum.WalkSpeed = ws end
-        end
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = ws end
     end
 end)
 
@@ -864,42 +863,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- БАННИ ХОП (РАСПРЫЖКА)
-CreateButton(PlayerTab, "bunnyhop", "BUNNY HOP (SPEED BOOST)", 3, function()
-    if states.bunnyhop then
-        states.bunnyhop = true
-        if connections.bhop then connections.bhop:Disconnect() end
-        
-        local baseSpeed = 16
-        local maxSpeed = 250
-        local increment = 2
-        local currentSpeed = baseSpeed
-        
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = baseSpeed end
-        
-        connections.bhop = SaveConnection(RunService.Stepped:Connect(function()
-            if not states.bunnyhop then return end
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                if hum.FloorMaterial ~= Enum.Material.Air then
-                    hum.Jump = true
-                    currentSpeed = math.min(currentSpeed + increment, maxSpeed)
-                    hum.WalkSpeed = currentSpeed
-                end
-            end
-        end))
-    else
-        states.bunnyhop = false
-        if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = 16 end
-    end
-end)
-
 local ResetPlayerBtn = Instance.new("TextButton")
 ResetPlayerBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
 ResetPlayerBtn.BackgroundTransparency = 0.4
@@ -907,7 +870,7 @@ ResetPlayerBtn.Size = UDim2.new(1, 0, 0, 36)
 ResetPlayerBtn.Font = Enum.Font.GothamBold
 ResetPlayerBtn.Text = "RESET STATS"
 ResetPlayerBtn.TextColor3 = Theme.TextColor
-ResetPlayerBtn.LayoutOrder = 4
+ResetPlayerBtn.LayoutOrder = 3
 ResetPlayerBtn.ZIndex = 4
 ResetPlayerBtn.Parent = PlayerTab
 Instance.new("UICorner", ResetPlayerBtn).CornerRadius = UDim.new(0, 8)
@@ -924,8 +887,201 @@ ResetPlayerBtn.MouseButton1Click:Connect(function()
     SpeedSlider.Text = "Speed: 16"
     JumpSlider.Size = UDim2.new(0.2, 0, 1, 0)
     JumpSlider.Text = "Jump: 50"
-    states.bunnyhop = false
-    if connections.bhop then connections.bhop:Disconnect(); connections.bhop = nil end
+end)
+
+-- ВКЛАДКА MUSIC (С ТВОИМ ID)
+local musicPlayer = Instance.new("Sound")
+musicPlayer.Name = "HubMusic"
+musicPlayer.Parent = SoundService
+musicPlayer.Volume = 0.5
+musicPlayer.Looped = false
+
+local MyMusic = {
+    {Name = "pinkcrush - я люблю тебя так сильно", ID = 12513449020857}
+}
+local currentSongIndex = 1
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.BackgroundColor3 = Theme.BtnOff
+SearchBox.BackgroundTransparency = 0.4
+SearchBox.Size = UDim2.new(1, 0, 0, 34)
+SearchBox.Font = Enum.Font.GothamBold
+SearchBox.PlaceholderText = "Поиск песни..."
+SearchBox.Text = ""
+SearchBox.TextColor3 = Theme.TextColor
+SearchBox.TextSize = 12
+SearchBox.LayoutOrder = 1
+SearchBox.ZIndex = 4
+SearchBox.Parent = MusicTab
+Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 8)
+local SearchStroke = Instance.new("UIStroke", SearchBox)
+SearchStroke.Color = Theme.Accent
+SearchStroke.Thickness = 1
+SearchStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = SearchBox, stroke = SearchStroke, isTab = false})
+
+local MusicListScroll = Instance.new("ScrollingFrame")
+MusicListScroll.BackgroundColor3 = Theme.BtnOff
+MusicListScroll.BackgroundTransparency = 0.4
+MusicListScroll.Size = UDim2.new(1, 0, 0, 100)
+MusicListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+MusicListScroll.ScrollBarThickness = 3
+MusicListScroll.ScrollBarImageColor3 = Theme.Accent
+MusicListScroll.LayoutOrder = 2
+MusicListScroll.ZIndex = 4
+MusicListScroll.Parent = MusicTab
+Instance.new("UICorner", MusicListScroll).CornerRadius = UDim.new(0, 8)
+Instance.new("UIListLayout", MusicListScroll).Padding = UDim.new(0, 3)
+
+local function refreshMusicList(filter)
+    for _, child in ipairs(MusicListScroll:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    local count = 0
+    for _, song in ipairs(MyMusic) do
+        if filter == "" or string.find(string.lower(song.Name), string.lower(filter)) then
+            count = count + 1
+            local sBtn = Instance.new("TextButton")
+            sBtn.BackgroundColor3 = Theme.Main
+            sBtn.BackgroundTransparency = 0.4
+            sBtn.Size = UDim2.new(1, -4, 0, 28)
+            sBtn.Font = Enum.Font.GothamBold
+            sBtn.Text = song.Name
+            sBtn.TextColor3 = Theme.TextColor
+            sBtn.TextSize = 11
+            sBtn.ZIndex = 5
+            sBtn.Parent = MusicListScroll
+            Instance.new("UICorner", sBtn).CornerRadius = UDim.new(0, 4)
+            sBtn.MouseButton1Click:Connect(function()
+                currentSongIndex = 1
+                for i, s in ipairs(MyMusic) do if s.Name == song.Name then currentSongIndex = i break end end
+                musicPlayer.SoundId = "rbxassetid://" .. song.ID
+                musicPlayer:Play()
+                PlayPauseBtn.Text = "PAUSE"
+            end)
+        end
+    end
+    MusicListScroll.CanvasSize = UDim2.new(0, 0, 0, count * 32)
+end
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    refreshMusicList(SearchBox.Text)
+end)
+
+refreshMusicList("")
+
+local PlayPauseBtn = Instance.new("TextButton")
+PlayPauseBtn.BackgroundColor3 = Theme.BtnOn
+PlayPauseBtn.BackgroundTransparency = 0.4
+PlayPauseBtn.Size = UDim2.new(0.3, -4, 0, 34)
+PlayPauseBtn.Font = Enum.Font.GothamBold
+PlayPauseBtn.Text = "PAUSE"
+PlayPauseBtn.TextColor3 = Theme.TextColor
+PlayPauseBtn.LayoutOrder = 3
+PlayPauseBtn.ZIndex = 4
+PlayPauseBtn.Parent = MusicTab
+Instance.new("UICorner", PlayPauseBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = PlayPauseBtn, stroke = nil, isTab = false})
+
+local PrevBtn = Instance.new("TextButton")
+PrevBtn.BackgroundColor3 = Theme.BtnOff
+PrevBtn.BackgroundTransparency = 0.4
+PrevBtn.Size = UDim2.new(0.3, -4, 0, 34)
+PrevBtn.Font = Enum.Font.GothamBold
+PrevBtn.Text = "PREV"
+PrevBtn.TextColor3 = Theme.TextColor
+PrevBtn.LayoutOrder = 4
+PrevBtn.ZIndex = 4
+PrevBtn.Parent = MusicTab
+Instance.new("UICorner", PrevBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = PrevBtn, stroke = nil, isTab = false})
+
+local NextBtn = Instance.new("TextButton")
+NextBtn.BackgroundColor3 = Theme.BtnOff
+NextBtn.BackgroundTransparency = 0.4
+NextBtn.Size = UDim2.new(0.3, -4, 0, 34)
+NextBtn.Font = Enum.Font.GothamBold
+NextBtn.Text = "NEXT"
+NextBtn.TextColor3 = Theme.TextColor
+NextBtn.LayoutOrder = 5
+NextBtn.ZIndex = 4
+NextBtn.Parent = MusicTab
+Instance.new("UICorner", NextBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = NextBtn, stroke = nil, isTab = false})
+
+local VolBg = Instance.new("Frame")
+VolBg.BackgroundColor3 = Theme.BtnOff
+VolBg.BackgroundTransparency = 0.4
+VolBg.Size = UDim2.new(1, 0, 0, 34)
+VolBg.LayoutOrder = 6
+VolBg.ZIndex = 4
+VolBg.Parent = MusicTab
+Instance.new("UICorner", VolBg).CornerRadius = UDim.new(0, 8)
+local VolStroke = Instance.new("UIStroke", VolBg)
+VolStroke.Color = Theme.Accent
+VolStroke.Thickness = 1
+VolStroke.Transparency = 0.8
+table.insert(AllButtons, {btn = VolBg, stroke = VolStroke, isTab = false})
+
+local VolSlider = Instance.new("TextButton")
+VolSlider.BackgroundColor3 = Theme.Accent
+VolSlider.Size = UDim2.new(0.5, 0, 1, 0) 
+VolSlider.Text = "Volume: 50%"
+VolSlider.Font = Enum.Font.GothamBold
+VolSlider.TextColor3 = Theme.TextColor
+VolSlider.TextSize = 11
+VolSlider.ZIndex = 4
+VolSlider.Parent = VolBg
+Instance.new("UICorner", VolSlider).CornerRadius = UDim.new(0, 8)
+
+local draggingVol = false
+VolSlider.MouseButton1Down:Connect(function() draggingVol = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingVol = false end end)
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and draggingVol then
+        local mouseX = UserInputService:GetMouseLocation().X
+        local framePos = VolBg.AbsolutePosition.X; local frameSize = VolBg.AbsoluteSize.X
+        local relativeX = math.clamp((mouseX - framePos) / frameSize, 0, 1)
+        VolSlider.Size = UDim2.new(relativeX, 0, 1, 0)
+        musicPlayer.Volume = relativeX
+        VolSlider.Text = "Volume: " .. math.floor(relativeX * 100) .. "%"
+    end
+end)
+
+PlayPauseBtn.MouseButton1Click:Connect(function()
+    if musicPlayer.IsPlaying then
+        musicPlayer:Pause()
+        PlayPauseBtn.Text = "PLAY"
+    else
+        musicPlayer:Resume()
+        PlayPauseBtn.Text = "PAUSE"
+    end
+end)
+
+PrevBtn.MouseButton1Click:Connect(function()
+    currentSongIndex = currentSongIndex - 1
+    if currentSongIndex < 1 then currentSongIndex = #MyMusic end
+    local song = MyMusic[currentSongIndex]
+    musicPlayer.SoundId = "rbxassetid://" .. song.ID
+    musicPlayer:Play()
+    PlayPauseBtn.Text = "PAUSE"
+end)
+
+NextBtn.MouseButton1Click:Connect(function()
+    currentSongIndex = currentSongIndex + 1
+    if currentSongIndex > #MyMusic then currentSongIndex = 1 end
+    local song = MyMusic[currentSongIndex]
+    musicPlayer.SoundId = "rbxassetid://" .. song.ID
+    musicPlayer:Play()
+    PlayPauseBtn.Text = "PAUSE"
+end)
+
+musicPlayer.Ended:Connect(function()
+    currentSongIndex = currentSongIndex + 1
+    if currentSongIndex > #MyMusic then currentSongIndex = 1 end
+    local song = MyMusic[currentSongIndex]
+    musicPlayer.SoundId = "rbxassetid://" .. song.ID
+    musicPlayer:Play()
 end)
 
 -- ВКЛАДКА TARGET
