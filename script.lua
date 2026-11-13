@@ -10,7 +10,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
 local SKIN_SHAXED = 124994246147928
-local SKIN_VERITY = 121187248571158 -- НОВЫЙ ID
+local SKIN_ZAYTS = 86085478873661 -- НОВЫЙ ID
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ЕДИНАЯ ФУНКЦИЯ СКИНОВ (БЕЗ ПРОВЕРОК)
+-- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (С ПОДГОНКОЙ РАЗМЕРА)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -456,8 +456,27 @@ local function toggleCustomSkin(skinId)
                 customSkinModel = model
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if hrp then
-                    -- Привязываем модель прямо к HumanoidRootPart (как у Shaxed)
-                    model:PivotTo(hrp.CFrame)
+                    -- ПОДГОНКА РАЗМЕРА (уменьшаем, если модель слишком большая)
+                    if model:IsA("Model") then
+                        local _, size = model:GetBoundingBox()
+                        if size.Y > 5 then -- Если модель выше 5 стадов, значит она гигантская
+                            local scaleFactor = 5 / size.Y -- Подгоняем под рост ~5 стадов
+                            model:ScaleTo(scaleFactor)
+                        end
+                    elseif model:IsA("BasePart") then
+                        if model.Size.Y > 5 then
+                            local scaleFactor = 5 / model.Size.Y
+                            model.Size = model.Size * scaleFactor
+                        end
+                    end
+                    
+                    -- Привязываем
+                    if model:IsA("Model") then
+                        model:PivotTo(hrp.CFrame)
+                    else
+                        model.CFrame = hrp.CFrame
+                    end
+                    
                     model.Parent = char
                     for _, part in pairs(model:GetDescendants()) do
                         if part:IsA("BasePart") then
@@ -1127,21 +1146,21 @@ SkinShaxedBtn.MouseButton1Click:Connect(function()
     toggleCustomSkin(SKIN_SHAXED)
 end)
 
-local SkinVerityBtn = Instance.new("TextButton")
-SkinVerityBtn.BackgroundColor3 = Theme.BtnOff
-SkinVerityBtn.BackgroundTransparency = 0.4
-SkinVerityBtn.Size = UDim2.new(1, 0, 0, 36)
-SkinVerityBtn.Font = Enum.Font.GothamBold
-SkinVerityBtn.Text = "SKIN: Verity"
-SkinVerityBtn.TextColor3 = Theme.TextColor
-SkinVerityBtn.TextSize = 12
-SkinVerityBtn.LayoutOrder = 2
-SkinVerityBtn.ZIndex = 4
-SkinVerityBtn.Parent = AvatarTab
-Instance.new("UICorner", SkinVerityBtn).CornerRadius = UDim.new(0, 8)
-table.insert(AllButtons, {btn = SkinVerityBtn, stroke = nil, isTab = false})
-SkinVerityBtn.MouseButton1Click:Connect(function()
-    toggleCustomSkin(SKIN_VERITY)
+local SkinZaytsBtn = Instance.new("TextButton")
+SkinZaytsBtn.BackgroundColor3 = Theme.BtnOff
+SkinZaytsBtn.BackgroundTransparency = 0.4
+SkinZaytsBtn.Size = UDim2.new(1, 0, 0, 36)
+SkinZaytsBtn.Font = Enum.Font.GothamBold
+SkinZaytsBtn.Text = "SKIN: Zayts"
+SkinZaytsBtn.TextColor3 = Theme.TextColor
+SkinZaytsBtn.TextSize = 12
+SkinZaytsBtn.LayoutOrder = 2
+SkinZaytsBtn.ZIndex = 4
+SkinZaytsBtn.Parent = AvatarTab
+Instance.new("UICorner", SkinZaytsBtn).CornerRadius = UDim.new(0, 8)
+table.insert(AllButtons, {btn = SkinZaytsBtn, stroke = nil, isTab = false})
+SkinZaytsBtn.MouseButton1Click:Connect(function()
+    toggleCustomSkin(SKIN_ZAYTS)
 end)
 
 local ResetSkinBtn = Instance.new("TextButton")
