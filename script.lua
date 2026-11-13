@@ -10,7 +10,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
 local SKIN_SHAXED = 124994246147928
-local SKIN_ZAYTS = 86085478873661 -- НОВЫЙ ID
+local SKIN_ZAYTS = 86085478873661
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -431,7 +431,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     ApplyThemeToAll()
 end
 
--- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (С ПОДГОНКОЙ РАЗМЕРА)
+-- ИСПРАВЛЕННАЯ ФУНКЦИЯ СКИНОВ (С ПОВОРОТОМ ДЛЯ ZAYTS)
 local function toggleCustomSkin(skinId)
     local char = LocalPlayer.Character
     if not char then return end
@@ -470,11 +470,16 @@ local function toggleCustomSkin(skinId)
                         end
                     end
                     
-                    -- Привязываем
+                    -- ПОВОРОТ ДЛЯ ZAYTS (на 90 градусов вправо)
+                    local targetCFrame = hrp.CFrame
+                    if skinId == SKIN_ZAYTS then
+                        targetCFrame = hrp.CFrame * CFrame.Angles(0, math.rad(90), 0)
+                    end
+                    
                     if model:IsA("Model") then
-                        model:PivotTo(hrp.CFrame)
+                        model:PivotTo(targetCFrame)
                     else
-                        model.CFrame = hrp.CFrame
+                        model.CFrame = targetCFrame
                     end
                     
                     model.Parent = char
