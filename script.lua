@@ -10,7 +10,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ID СКИНОВ
 local SKIN_SHAXED = 124994246147928
-local SKIN_DOGE = 5406746304 -- НОВЫЙ ID
+local SKIN_DOGE = 5406746304 -- Buff Doge
 
 -- ID ФОНОВ
 local BG_DEFAULT = 123806149814449
@@ -464,11 +464,11 @@ local function toggleCustomSkin(skinId)
                         end
                     end
 
-                    -- Поворот (собака должна встать на лапы)
+                    -- Поворот (Buff Doge изначально лежит)
                     local targetCFrame = hrp.CFrame
                     if skinId == SKIN_DOGE then
-                        -- Если она лежит, этот поворот поставит её
-                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(-90), 0, 0) * CFrame.new(0, 1.5, 0)
+                        -- Поворот на +90 по X, чтобы поставить на лапы
+                        targetCFrame = hrp.CFrame * CFrame.Angles(math.rad(90), 0, 0) * CFrame.new(0, 1.5, 0)
                     end
                     
                     if model:IsA("Model") then
@@ -1153,7 +1153,7 @@ SkinDogeBtn.Size = UDim2.new(1, 0, 0, 36)
 SkinDogeBtn.Font = Enum.Font.GothamBold
 SkinDogeBtn.Text = "SKIN: Sobaka Za Yaitsa Kysaka"
 SkinDogeBtn.TextColor3 = Theme.TextColor
-SkinDogeBtn.TextSize = 10 -- Уменьшил размер текста, так как название длинное
+SkinDogeBtn.TextSize = 10
 SkinDogeBtn.LayoutOrder = 2
 SkinDogeBtn.ZIndex = 4
 SkinDogeBtn.Parent = AvatarTab
