@@ -36,15 +36,14 @@ end
 
 if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
--- ИЗМЕНЕНО: ТЕПЕРЬ ТЕМА СРАЗУ ЧЕРНАЯ
 local Theme = { 
     Main = Color3.fromRGB(15, 10, 20), 
     Secondary = Color3.fromRGB(30, 15, 45), 
-    Accent = Color3.fromRGB(30, 30, 30), -- Темно-серый
-    AccentDark = Color3.fromRGB(15, 15, 15), -- Черный
+    Accent = Color3.fromRGB(30, 30, 30),
+    AccentDark = Color3.fromRGB(20, 20, 20),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(15, 15, 15), -- Черный фон кнопок
-    BtnOn = Color3.fromRGB(50, 50, 50), -- Темно-серый при включении
+    BtnOff = Color3.fromRGB(15, 15, 15),
+    BtnOn = Color3.fromRGB(50, 50, 50),
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
@@ -200,8 +199,9 @@ CloseBtn.ZIndex = 3
 CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
+-- СВОРАЧИВАЕМАЯ КНОПКА (ТЕПЕРЬ ЧЕРНАЯ ПО УМОЛЧАНИЮ)
 local MinimizedFrame = Instance.new("TextButton")
-MinimizedFrame.BackgroundColor3 = Theme.Main
+MinimizedFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- ЧЕРНЫЙ
 MinimizedFrame.Size = UDim2.new(0, 50, 0, 50)
 MinimizedFrame.Position = MainFrame.Position
 MinimizedFrame.Text = ""
@@ -425,6 +425,7 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     Theme.TextColor = textColor or Color3.fromRGB(255, 255, 255)
     Theme.ActiveTextColor = activeTextColor or Color3.fromRGB(255, 255, 255)
     
+    -- МЕНЯЕМ ЦВЕТ ИКОНКИ СВОРАЧИВАНИЯ ПОД ТЕМУ
     MinimizedFrame.BackgroundColor3 = minColor or Theme.Main
     MinStroke.Color = Theme.Accent
     
