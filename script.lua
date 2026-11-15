@@ -36,14 +36,15 @@ end
 
 if PlayerGui:FindFirstChild("MM2_Purple_Hub") then PlayerGui["MM2_Purple_Hub"]:Destroy() end
 
+-- УБРАНЫ ВСЕ ФИОЛЕТОВЫЕ ОТТЕНКИ ИЗ БАЗОВОЙ ТЕМЫ
 local Theme = { 
-    Main = Color3.fromRGB(15, 10, 20), 
-    Secondary = Color3.fromRGB(30, 15, 45), 
-    Accent = Color3.fromRGB(30, 30, 30),
+    Main = Color3.fromRGB(15, 15, 15),          -- Темно-серый вместо фиолетового
+    Secondary = Color3.fromRGB(25, 25, 25),     -- Темно-серый вместо фиолетового
+    Accent = Color3.fromRGB(40, 40, 40),
     AccentDark = Color3.fromRGB(20, 20, 20),
     Text = Color3.fromRGB(255, 255, 255), 
-    BtnOff = Color3.fromRGB(15, 15, 15),
-    BtnOn = Color3.fromRGB(50, 50, 50),
+    BtnOff = Color3.fromRGB(10, 10, 10),        -- Чистый черный для выключенных кнопок
+    BtnOn = Color3.fromRGB(60, 60, 60),         -- Серый для включенных кнопок
     TextColor = Color3.fromRGB(255, 255, 255),
     ActiveTextColor = Color3.fromRGB(255, 255, 255) 
 }
@@ -312,8 +313,8 @@ ContentFrame.Parent = MainFrame
 local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
-    btn.BackgroundColor3 = Theme.BtnOff
-    btn.BackgroundTransparency = 0            -- ИСПРАВЛЕНО: кнопки вкладок теперь непрозрачные
+    btn.BackgroundColor3 = Color3.fromRGB(10, 10, 10) -- Чистый черный
+    btn.BackgroundTransparency = 0                    -- ПОЛНОСТЬЮ НЕПРОЗРАЧНЫЙ
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
@@ -325,9 +326,9 @@ local function CreateTab(name, order)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     
     local stroke = Instance.new("UIStroke", btn)
-    stroke.Color = Theme.Accent
+    stroke.Color = Color3.fromRGB(60, 60, 60)
     stroke.Thickness = 1.5
-    stroke.Transparency = 0.6
+    stroke.Transparency = 0.4
     
     local frame = Instance.new("ScrollingFrame")
     frame.BackgroundTransparency = 1
@@ -347,8 +348,8 @@ local function CreateTab(name, order)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
-            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0, TextColor3 = Theme.TextColor}):Play()
-            TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.6}):Play()
+            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(10, 10, 10), BackgroundTransparency = 0, TextColor3 = Theme.TextColor}):Play()
+            TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.4}):Play()
             t.frame.Visible = false
         end
         TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOn, BackgroundTransparency = 0, TextColor3 = Theme.ActiveTextColor}):Play()
@@ -392,8 +393,8 @@ local function ApplyThemeToAll()
                     item.btn.BackgroundColor3 = Theme.BtnOn
                     item.stroke.Color = Theme.Accent
                 else
-                    item.btn.BackgroundColor3 = Theme.BtnOff
-                    item.stroke.Color = Theme.Accent
+                    item.btn.BackgroundColor3 = Color3.fromRGB(10, 10, 10) -- Всегда черный, если не выбран
+                    item.stroke.Color = Color3.fromRGB(60, 60, 60)
                 end
                 item.btn.TextColor3 = Theme.TextColor
                 item.btn.BackgroundTransparency = 0 -- Всегда непрозрачный
@@ -411,10 +412,10 @@ local function ApplyThemeToAll()
     
     for _, v in pairs(MainFrame:GetDescendants()) do
         if v:IsA("UIStroke") then
-            v.Color = Theme.Accent
-        end
-        if v:IsA("TextButton") and v.BackgroundColor3 == Color3.fromRGB(255, 120, 0) then
-            v.BackgroundColor3 = Theme.Accent
+            -- Не трогаем обводку кнопок вкладок, чтобы не было фиолетового
+            if v.Parent and not v.Parent:IsDescendantOf(TabList) then
+                v.Color = Theme.Accent
+            end
         end
     end
 end
@@ -438,8 +439,6 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     UIStroke.Color = Theme.Accent
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
-    
-    SideBar.BackgroundColor3 = Theme.Secondary
     
     ApplyThemeToAll()
 end
@@ -1203,7 +1202,7 @@ end
 
 CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 120, 0), 1)
 CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 120, 170), 2)
-CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(15, 15, 15), 3)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(40, 40, 40), Color3.fromRGB(20, 20, 20), Color3.fromRGB(60, 60, 60), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(15, 15, 15), 3)
 
 -- КНОПКА ВНУТРИ ВКЛАДКИ "НЕ ОТКРЫВАТЬ"
 local CrashBtn = Instance.new("TextButton")
