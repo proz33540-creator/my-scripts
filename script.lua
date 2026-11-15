@@ -20,7 +20,7 @@ local BG_SAKURA = 111536806870768
 local MINIMIZE_ICON_ID = 92072206407848 
 
 -- НАЗВАНИЕ ЧИТА
-local HUB_NAME = "Phantom"
+local HUB_NAME = "PHANTOM"
 
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
@@ -111,7 +111,7 @@ FovStroke.Transparency = 0.5
 -- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 0          -- ИЗМЕНЕНО: было 1
+MainFrame.BackgroundTransparency = 0          -- ИЗМЕНЕНО: окно непрозрачное
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -131,7 +131,7 @@ BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. BG_DEFAULT
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0          -- ИЗМЕНЕНО: было 0.05
+BackgroundImage.ImageTransparency = 0          -- ИЗМЕНЕНО: фон непрозрачный
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
@@ -139,7 +139,7 @@ Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
-TopBar.BackgroundTransparency = 0             -- ИЗМЕНЕНО: было 0.2
+TopBar.BackgroundTransparency = 0             -- ИЗМЕНЕНО: шапка непрозрачная
 TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.ZIndex = 2
 TopBar.ClipsDescendants = true
@@ -177,7 +177,7 @@ AuthorText.Parent = TopBar
 
 -- КНОПКА СВЕРНУТЬ (ЧЕРНАЯ)
 local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- ЧЕРНЫЙ ЦВЕТ
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MinimizeBtn.Position = UDim2.new(1, -60, 0, 10)
 MinimizeBtn.Size = UDim2.new(0, 22, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
@@ -286,7 +286,7 @@ end)
 -- САЙДБАР
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 0            -- ИЗМЕНЕНО: было 1
+SideBar.BackgroundTransparency = 1            -- ВОЗВРАЩЕНО: сайдбар прозрачный, чтобы не было фиолетовой плашки
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -420,8 +420,7 @@ end
 
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor, minColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
-    BackgroundImage.ImageTransparency = 0          -- ИЗМЕНЕНО: принудительно непрозрачный
-    MainFrame.BackgroundTransparency = 0          -- ИЗМЕНЕНО: принудительно непрозрачный
+    BackgroundImage.ImageTransparency = 0          -- Фон всегда непрозрачный
     
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
@@ -439,8 +438,8 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     
+    -- Сайдбар не трогаем, он прозрачный (BackgroundTransparency = 1)
     SideBar.BackgroundColor3 = Theme.Secondary
-    SideBar.BackgroundTransparency = 0            -- ИЗМЕНЕНО: принудительно непрозрачный
     
     ApplyThemeToAll()
 end
