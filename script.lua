@@ -111,7 +111,7 @@ FovStroke.Transparency = 0.5
 -- ОСНОВНОЕ ОКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.BackgroundColor3 = Theme.Main
-MainFrame.BackgroundTransparency = 0          -- ИЗМЕНЕНО: окно непрозрачное
+MainFrame.BackgroundTransparency = 0
 MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 460, 0, 380)
 MainFrame.Active = true
@@ -131,7 +131,7 @@ BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
 BackgroundImage.Image = "rbxassetid://" .. BG_DEFAULT
 BackgroundImage.ScaleType = Enum.ScaleType.Crop
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ImageTransparency = 0          -- ИЗМЕНЕНО: фон непрозрачный
+BackgroundImage.ImageTransparency = 0
 BackgroundImage.ZIndex = 1
 BackgroundImage.Parent = MainFrame
 Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
@@ -139,7 +139,7 @@ Instance.new("UICorner", BackgroundImage).CornerRadius = UDim.new(0, 12)
 -- ВЕРХНЯЯ ПАНЕЛЬ
 local TopBar = Instance.new("Frame")
 TopBar.BackgroundColor3 = Theme.Secondary
-TopBar.BackgroundTransparency = 0             -- ИЗМЕНЕНО: шапка непрозрачная
+TopBar.BackgroundTransparency = 0
 TopBar.Size = UDim2.new(1, 0, 0, 45)
 TopBar.ZIndex = 2
 TopBar.ClipsDescendants = true
@@ -286,7 +286,7 @@ end)
 -- САЙДБАР
 local SideBar = Instance.new("Frame")
 SideBar.BackgroundColor3 = Theme.Secondary
-SideBar.BackgroundTransparency = 1            -- ВОЗВРАЩЕНО: сайдбар прозрачный, чтобы не было фиолетовой плашки
+SideBar.BackgroundTransparency = 1
 SideBar.Position = UDim2.new(0, 0, 0, 45)
 SideBar.Size = UDim2.new(0, 120, 1, -45)
 SideBar.ZIndex = 2
@@ -313,7 +313,7 @@ local Tabs = {}
 local function CreateTab(name, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
-    btn.BackgroundTransparency = 0.4
+    btn.BackgroundTransparency = 0            -- ИСПРАВЛЕНО: кнопки вкладок теперь непрозрачные
     btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
@@ -347,7 +347,7 @@ local function CreateTab(name, order)
     
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do
-            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0.4, TextColor3 = Theme.TextColor}):Play()
+            TweenService:Create(t.btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.BtnOff, BackgroundTransparency = 0, TextColor3 = Theme.TextColor}):Play()
             TweenService:Create(t.btn:FindFirstChildOfClass("UIStroke"), TweenInfo.new(0.2), {Transparency = 0.6}):Play()
             t.frame.Visible = false
         end
@@ -396,6 +396,7 @@ local function ApplyThemeToAll()
                     item.stroke.Color = Theme.Accent
                 end
                 item.btn.TextColor3 = Theme.TextColor
+                item.btn.BackgroundTransparency = 0 -- Всегда непрозрачный
             else
                 if item.btn.Text:find("ON") then
                     item.btn.BackgroundColor3 = Theme.BtnOn
@@ -420,7 +421,8 @@ end
 
 local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor, minColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
-    BackgroundImage.ImageTransparency = 0          -- Фон всегда непрозрачный
+    BackgroundImage.ImageTransparency = 0
+    MainFrame.BackgroundTransparency = 0
     
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
@@ -428,7 +430,6 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     Theme.TextColor = textColor or Color3.fromRGB(255, 255, 255)
     Theme.ActiveTextColor = activeTextColor or Color3.fromRGB(255, 255, 255)
     
-    -- МЕНЯЕМ ЦВЕТ ИКОНКИ СВОРАЧИВАНИЯ ПОД ТЕМУ
     MinimizedFrame.BackgroundColor3 = minColor or Theme.Main
     MinStroke.Color = Theme.Accent
     
@@ -438,7 +439,6 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     
-    -- Сайдбар не трогаем, он прозрачный (BackgroundTransparency = 1)
     SideBar.BackgroundColor3 = Theme.Secondary
     
     ApplyThemeToAll()
