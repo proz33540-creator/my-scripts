@@ -200,7 +200,7 @@ CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
 local MinimizedFrame = Instance.new("TextButton")
-MinimizedFrame.BackgroundColor3 = Theme.Secondary
+MinimizedFrame.BackgroundColor3 = Theme.Main -- БУДЕТ МЕНЯТЬСЯ С ТЕМОЙ
 MinimizedFrame.Size = UDim2.new(0, 50, 0, 50)
 MinimizedFrame.Position = MainFrame.Position
 MinimizedFrame.Text = ""
@@ -416,7 +416,7 @@ local function ApplyThemeToAll()
     end
 end
 
-local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor)
+local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, activeTextColor, minColor)
     BackgroundImage.Image = "rbxassetid://" .. bgId
     Theme.Accent = accentColor
     Theme.AccentDark = accentDark
@@ -424,12 +424,15 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     Theme.TextColor = textColor or Color3.fromRGB(255, 255, 255)
     Theme.ActiveTextColor = activeTextColor or Color3.fromRGB(255, 255, 255)
     
+    -- МЕНЯЕМ ЦВЕТ ИКОНКИ СВОРАЧИВАНИЯ ПОД ТЕМУ
+    MinimizedFrame.BackgroundColor3 = minColor or Theme.Main
+    MinStroke.Color = Theme.Accent
+    
     ColorCorrection.TintColor = accentColor
     
     UIStroke.Color = Theme.Accent
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
     MinimizeBtn.BackgroundColor3 = Theme.AccentDark
-    MinStroke.Color = Theme.Accent
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     
     SideBar.BackgroundColor3 = Theme.Secondary
@@ -1165,7 +1168,7 @@ SkinInfo.ZIndex = 4
 SkinInfo.Parent = AvatarTab
 
 -- ТЕМА (ФОНЫ)
-local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, order)
+local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, activeTextColor, minColor, order)
     local btn = Instance.new("TextButton")
     btn.BackgroundColor3 = Theme.BtnOff
     btn.BackgroundTransparency = 0.4
@@ -1190,13 +1193,13 @@ local function CreateThemeBtn(text, bgId, accent, accentDark, btnOn, textColor, 
     btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.4}):Play() end)
     
     btn.MouseButton1Click:Connect(function()
-        changeTheme(bgId, accent, accentDark, btnOn, textColor, activeTextColor)
+        changeTheme(bgId, accent, accentDark, btnOn, textColor, activeTextColor, minColor)
     end)
 end
 
-CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 1)
-CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 2)
-CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), 3)
+CreateThemeBtn("ORANGE THEME", BG_ORANGE, Color3.fromRGB(255, 120, 0), Color3.fromRGB(200, 80, 0), Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 120, 0), 1)
+CreateThemeBtn("SAKURA THEME", BG_SAKURA, Color3.fromRGB(255, 100, 150), Color3.fromRGB(200, 50, 100), Color3.fromRGB(255, 120, 170), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 120, 170), 2)
+CreateThemeBtn("DEFAULT THEME", BG_DEFAULT, Color3.fromRGB(30, 30, 30), Color3.fromRGB(15, 15, 15), Color3.fromRGB(50, 50, 50), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255), Color3.fromRGB(15, 15, 15), 3)
 
 -- КНОПКА ВНУТРИ ВКЛАДКИ "НЕ ОТКРЫВАТЬ"
 local CrashBtn = Instance.new("TextButton")
