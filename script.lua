@@ -175,8 +175,9 @@ AuthorText.TextXAlignment = Enum.TextXAlignment.Left
 AuthorText.ZIndex = 3
 AuthorText.Parent = TopBar
 
+-- КНОПКА СВЕРНУТЬ (ЧЕРНАЯ)
 local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 60)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- ЧЕРНЫЙ ЦВЕТ
 MinimizeBtn.Position = UDim2.new(1, -60, 0, 10)
 MinimizeBtn.Size = UDim2.new(0, 22, 0, 24)
 MinimizeBtn.Font = Enum.Font.GothamBold
@@ -199,9 +200,9 @@ CloseBtn.ZIndex = 3
 CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
--- СВОРАЧИВАЕМАЯ КНОПКА (ТЕПЕРЬ ЧЕРНАЯ ПО УМОЛЧАНИЮ)
+-- СВОРАЧИВАЕМАЯ КНОПКА (ЧЕРНАЯ)
 local MinimizedFrame = Instance.new("TextButton")
-MinimizedFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- ЧЕРНЫЙ
+MinimizedFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MinimizedFrame.Size = UDim2.new(0, 50, 0, 50)
 MinimizedFrame.Position = MainFrame.Position
 MinimizedFrame.Text = ""
@@ -433,7 +434,8 @@ local function changeTheme(bgId, accentColor, accentDark, btnOn, textColor, acti
     
     UIStroke.Color = Theme.Accent
     TopGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Theme.Accent), ColorSequenceKeypoint.new(1, Theme.AccentDark)})
-    MinimizeBtn.BackgroundColor3 = Theme.AccentDark
+    -- СТРОКА НИЖЕ УБРАНА, ЧТОБЫ КНОПКА "СВЕРНУТЬ" ВСЕГДА БЫЛА ЧЕРНОЙ
+    -- MinimizeBtn.BackgroundColor3 = Theme.AccentDark
     ResizeBtn.BackgroundColor3 = Theme.AccentDark
     
     SideBar.BackgroundColor3 = Theme.Secondary
