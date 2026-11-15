@@ -16,6 +16,12 @@ local BG_DEFAULT = 123806149814449
 local BG_ORANGE = 138974528086602
 local BG_SAKURA = 111536806870768
 
+-- ID ИКОНКИ ПРИ СВОРАЧИВАНИИ
+local MINIMIZE_ICON_ID = 92072206407848 
+
+-- НАЗВАНИЕ ЧИТА
+local HUB_NAME = "PHANTOM"
+
 if _G.MM2_Hub_Connections then
     for _, conn in ipairs(_G.MM2_Hub_Connections) do
         if conn and typeof(conn) == "RBXScriptConnection" then pcall(function() conn:Disconnect() end) end
@@ -150,7 +156,7 @@ Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Size = UDim2.new(0, 150, 1, 0)
 Title.Font = Enum.Font.GothamBlack
-Title.Text = "PURPLE HUB"
+Title.Text = HUB_NAME
 Title.TextColor3 = Theme.TextColor
 Title.TextSize = 18
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -212,7 +218,7 @@ local IconLabel = Instance.new("ImageLabel")
 IconLabel.BackgroundTransparency = 1
 IconLabel.Size = UDim2.new(1, 0, 1, 0)
 IconLabel.Position = UDim2.new(0, 0, 0, 0)
-IconLabel.Image = "rbxassetid://120155019758434"
+IconLabel.Image = "rbxassetid://" .. MINIMIZE_ICON_ID
 IconLabel.ScaleType = Enum.ScaleType.Crop 
 IconLabel.Parent = MinimizedFrame
 Instance.new("UICorner", IconLabel).CornerRadius = UDim.new(0, 10)
@@ -352,7 +358,7 @@ local function CreateTab(name, order)
 end
 
 local MainTab = CreateTab("Main", 1)
-local PlayerTab = CreateTab("Player", 2) -- ЗДЕСЬ НАПИСАНО PLAYER
+local PlayerTab = CreateTab("Player", 2)
 local TargetTab = CreateTab("Target", 3)
 local AvatarTab = CreateTab("Avatar", 4)
 local FilterTab = CreateTab("Filter Screen", 5)
